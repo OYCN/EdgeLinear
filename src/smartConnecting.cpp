@@ -48,7 +48,7 @@ cv::Mat Main::smartConnecting()
 			{
 				continue;
 			}
-			edge_offset[edge_offset_len] = 0;
+			edge_offset[edge_offset_len] = edge_offset[edge_offset_len-1];
 			//if(debug==0) {printf("a:%d e:%d\n", aMap IDX(0,0), eMap.data IDX(0,0));debug++;}
 			
 			edge_smart_idx = 0;

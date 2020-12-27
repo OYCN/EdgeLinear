@@ -44,8 +44,13 @@ int main(int argc, char *args[])
 
 	TEND(EdgeDrawing);
 	TPRINTMS(EdgeDrawing, "EdgeDrawing: ");
-	std::cout << "Number of Edge Segment : " << edge_seg_len << std::endl;
+	std::cout << "Number of Edge Segment : " << edge_seg_len-1 << std::endl;
+	std::cout << "Number of Line Point : " << edge_seg_offset[edge_seg_len-1] << std::endl;
 
+	// for(int i=0; i<edge_seg_len; i++)
+	// {
+	// 	std::cout << "edge_seg_offset[" << i << "] = " << edge_seg_offset[i] << std::endl;
+	// }
 	#ifndef JUST_ED
 	#ifdef USE_GPUDP
 	TSTART(SearchLines_gpu);
@@ -140,13 +145,19 @@ int main(int argc, char *args[])
 	grayImg /= 2; 
 	cv::cvtColor(grayImg, result, CV_GRAY2RGB);
 	// draw edges
+	// for(int i=0; i<(edge_seg_offset[edge_seg_len-1]); i++)
+	// {
+	// 	result.at<cv::Vec3b>((cv::Point)(edge_seg[i]))[0] = 0;
+	// 	result.at<cv::Vec3b>((cv::Point)(edge_seg[i]))[1] = 0;
+	// 	result.at<cv::Vec3b>((cv::Point)(edge_seg[i]))[2] = 255;
+	// }
 	for(int i=0; i<(edge_seg_len-1); i++)
 	{
 		for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
 		{
-			result.at<cv::Vec3b>((cv::Point)(edge_seg[edge_seg_offset[i]+j]))[0] = 0;
-			result.at<cv::Vec3b>((cv::Point)(edge_seg[edge_seg_offset[i]+j]))[1] = 0;
-			result.at<cv::Vec3b>((cv::Point)(edge_seg[edge_seg_offset[i]+j]))[2] = 255;
+			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 0;
+			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 0;
+			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 255;
 		}
 	}
 	#ifdef USE_GPUDP
