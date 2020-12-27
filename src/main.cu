@@ -7,8 +7,6 @@
 #define PI 3.14159265
 
 TDEF(EdgeDrawing);
-TDEF(EdInit);
-TDEF(EdProc);
 TDEF(SearchLines_cpu);
 TDEF(SearchLines_gpu);
 #ifdef TIM_GPUDP
@@ -22,45 +20,31 @@ TDEF(Sgpu_dealf);
 
 int main(int argc, char *args[])
 {
-	ED edgeDrawing;
-	VECTOR_H<VECTOR_H<POINT>> edge_seg;
-	cv::Mat src, grayImg, blurImg, eMap, result; 
+	cv::Mat src, grayImg, eMap, result; 
+	POINT *edge_seg;
+	int *edge_seg_offset;
+	int edge_seg_len;
+
+	// 图像加载
 	if(argc!=1) src = cv::imread(args[1]);
 	else src = cv::imread(DEFIMG);
-
-	//检查图片是否成功加载
 	if (src.empty()) 
 	{
 		std::cout << "Can not load image!" << std::endl;
 		return 0;
 	}
+
+	// 主类初始化
+	Main MainClass(src.rows, src.cols);
+
 	TSTART(EdgeDrawing);
-	TSTART(EdInit);
-	// get grayImg
-	cv::cvtColor(src, grayImg, CV_RGB2GRAY);
-	// gaussian filter
-	cv::GaussianBlur(grayImg, blurImg, cv::Size(5, 5), 1, 0);
-	TEND(EdInit);
-	TSTART(EdProc);
-	// ED edge detection 
-	eMap = edgeDrawing.Process(blurImg, edge_seg);
-	TEND(EdProc);
+
+	// 边缘提取
+	eMap = MainClass.Process(src, edge_seg, edge_seg_offset, edge_seg_len);
+
 	TEND(EdgeDrawing);
-	TPRINTMS(EdInit, "EdgeImgInit: ");
-	TPRINTMS(EdProc, "EdgeImgProc: ");
 	TPRINTMS(EdgeDrawing, "EdgeDrawing: ");
-
-	std::cout << "Number of Edge Segment : " << edge_seg.size() << std::endl;
-
-	#ifdef JUST_ED
-	eMap *= 255;
-	cv::imwrite("out.png", eMap);
-	#ifdef SHOW_IMG
-	cv::namedWindow("eMap",CV_WINDOW_NORMAL);
-	cv::imshow("eMap", eMap);
-	cv::waitKey();
-	#endif
-	#endif
+	std::cout << "Number of Edge Segment : " << edge_seg_len << std::endl;
 
 	#ifndef JUST_ED
 	#ifdef USE_GPUDP
@@ -152,16 +136,17 @@ int main(int argc, char *args[])
 	}
 	std::cout << "line points_cpu is " << point_sum_cpu << std::endl;
 	#endif
+	cv::cvtColor(src, grayImg, CV_RGB2GRAY);
 	grayImg /= 2; 
 	cv::cvtColor(grayImg, result, CV_GRAY2RGB);
 	// draw edges
-	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator e=edge_seg.begin(); e != edge_seg.end(); e++)
+	for(int i=0; i<(edge_seg_len-1); i++)
 	{
-		for(VECTOR_H<POINT>::const_iterator p=(*e).begin(); p != (*e).end(); p++)
+		for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
 		{
-			result.at<cv::Vec3b>((cv::Point)(*p))[0] = 0;
-			result.at<cv::Vec3b>((cv::Point)(*p))[1] = 0;
-			result.at<cv::Vec3b>((cv::Point)(*p))[2] = 255;
+			result.at<cv::Vec3b>((cv::Point)(edge_seg[edge_seg_offset[i]+j]))[0] = 0;
+			result.at<cv::Vec3b>((cv::Point)(edge_seg[edge_seg_offset[i]+j]))[1] = 0;
+			result.at<cv::Vec3b>((cv::Point)(edge_seg[edge_seg_offset[i]+j]))[2] = 255;
 		}
 	}
 	#ifdef USE_GPUDP
@@ -229,7 +214,6 @@ int main(int argc, char *args[])
 	cv::waitKey();
 	#endif
 	#endif	//JUST_ED
-	VECTOR_H<VECTOR_H<POINT>>().swap(edge_seg);
 
 	eMap.release();
 	return 0;

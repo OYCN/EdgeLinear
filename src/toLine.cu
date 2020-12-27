@@ -1,5 +1,25 @@
 #include "EDProcess_par.h"
 
+/*
+*Summary: 类所需内存的申请等初始化操作，一个实例仅需一次
+*Parameters: 无
+*Return: 无
+*/
+void Main::_InitPD()
+{
+
+}
+
+/*
+*Summary: 类所需内存的申请等初始化操作，一个实例仅需一次
+*Parameters: 无
+*Return: 无
+*/
+void Main::_FreePD()
+{
+
+}
+
 #ifdef USE_CPUDP
 void DouglasPeucker(const VECTOR_H<POINT> &edge, VECTOR_H<POINT> &line, float epsilon)
 {

@@ -3,7 +3,7 @@
 
 // 包含文件
 #include <opencv2/opencv.hpp>
-// #include <opencv2/core/cuda.hpp>
+#include <opencv2/core/cuda.hpp>
 #include <iostream>
 #include <vector>
 #include "cuda.h"
@@ -13,13 +13,12 @@
 
 // 编译配置
 #define DEFIMG "./img/1.png"	// 默认图片
-#define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
+// #define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
 // #define USE_CPUDP	// 使用CPU-DP多边形化算法
-#define USE_GPUDP	// 使用GPU-DP多边形化算法
-// #define USE_UNIMEM	// 使用统一内存寻址
+// #define USE_GPUDP	// 使用GPU-DP多边形化算法
 #define SHOW_IMG	// 是否显示图片
-// #define TIM_PROC	// 是否显示ED proc的时间
 #define TIM_GPUDP	// 是否显示GPU DP的时间
+// #define USE_OPENCV_GPU
 
 #ifdef USE_CHECK
 #define USE_CPUDP
@@ -27,18 +26,10 @@
 #endif
 
 // 类型定义
-#ifndef USE_CHECK
-#ifdef USE_CPUDP
-#define VECTOR_H std::vector
-#define POINT cv::Point
-#endif
-#endif
 
-#ifdef USE_GPUDP
 #define VECTOR_H thrust::host_vector
 #define VECTOR_D thrust::device_vector
 #define POINT mygpu::Point
-#endif 
 
 #define ERROR(x) {printf( "%s in %s at line %d\n", (x), __FILE__, __LINE__ );exit( EXIT_FAILURE );}
 typedef unsigned char uchar;
@@ -84,13 +75,6 @@ namespace mygpu
 			if(obj.x==x && obj.y==y) return false;
 			else return true; 
 		}
-		// __host__ __device__
-		// void operator = (std::initializer_list <int> &il)
-		// {
-		// 	const int *v = il.begin();
-		// 	x = *v;
-		// 	y = *(v+1);
-		// }
 		__host__ __device__
 		operator cv::Point()
 		{
@@ -106,37 +90,58 @@ namespace mygpu
 	};
 }
 
-class ED
+class Main
 {
 	public:
-		~ED();
-		ED();
-		cv::Mat Process(cv::Mat& blurImg, VECTOR_H<VECTOR_H<POINT>>& edge_s, const int anchor_th = 6, const int k = 2);
+		
+		Main(int _rows=0, int _cols=0, int _anchor_th=6, int _k=2);
+		~Main();
+		cv::Mat Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int &edge_seg_len);
 	private:
-		void initinal(cv::Mat& blurImg, const int anchor_th, const int k);
-		#ifndef USE_UNIMEM
-		uchar *gMapd, *blurd, *fMapd;
+	// ========== ED ==========
+		uchar *gMapd, *fMapd, *blurd;
 		uchar *gMaph, *fMaph;
+		cv::Mat eMaph;
+		#ifndef USE_OPENCV_GPU
+		cv::Mat grayImg;
+		cv::Mat blurImg;
 		#endif
-		#ifdef USE_UNIMEM
-		uchar *gMap, *fMap, *blurd;
+		#ifdef USE_OPENCV_GPU
+		cv::cuda::GpuMat src_d;
+		cv::cuda::GpuMat grayImg;
+		cv::cuda::GpuMat blurImg;
 		#endif
 		int cols, rows;
-		int K, ANCHOR_TH;
+		int k, anchor_th;
+
+		dim3 dimBlock;
+		dim3 dimGrid;
+		dim3 dimGridOld;
+
+		POINT *edge_smart;	// 用于储存smart函数中临时数据
+		int edge_smart_idx;
+	// ======== ED&PD =========	// 初始化于 ED
+		POINT *edge_set;	// 全部边缘点集合
+		int *edge_offset;	// 每个边缘的偏移
+		int edge_offset_len;	// 偏移数组长度
+	// ========== PD ==========
+		POINT *edge_set_d;
+		int *edge_offset_d;
+		bool *flags_h;
+		bool *flags_d;
+		POINT *stack_d;
+
+		void _InitED();
+		void _FreeED();
+		void _InitPD();
+		void _FreePD();
+		void PerProc(cv::Mat &src);
+		void goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx);
+		cv::Mat smartConnecting();
+		
 };
 
-// 全局变量
-// #ifdef USE_GPUDP
-// cudaStream_t streams[STREAM_LEN];
-// char *stream_dflag[STREAM_LEN];
-// char *stream_hflag[STREAM_LEN];
-// int stream_len[STREAM_LEN];
-// #endif
-
 // 函数定义
-cv::Mat smartConnecting(uchar *gMap, uchar *fMap, int rows, int cols, VECTOR_H<VECTOR_H<POINT>>& edge_s);
-// __global__ void kernelA(uchar *blur, uchar* gMap, uchar* dMap, int cols, int rows);
-// __global__ void kernelB(uchar * gMap, uchar * dMap, uchar *aMap, int cols, int rows, int ANCHOR_TH, int K);
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
 #ifdef USE_CPUDP
 void DouglasPeucker(const VECTOR_H<POINT> &edge, VECTOR_H<POINT> &line, float epsilon);
