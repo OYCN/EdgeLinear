@@ -54,7 +54,7 @@ void ED::initinal(cv::Mat& blurImg, const int anchor_th, const int k)
 	#endif
 }
 
-cv::Mat ED::Process(cv::Mat& blurImg, VECTOR_H<VECTOR_H<cv::Point>>& edge_seg, const int anchor_th,  const int k)
+cv::Mat ED::Process(cv::Mat& blurImg, VECTOR_H<VECTOR_H<POINT>>& edge_seg, const int anchor_th,  const int k)
 {
 	cv::Mat debug = cv::Mat::zeros(blurImg.size(), blurImg.type());
 	#ifdef TIM_PROC

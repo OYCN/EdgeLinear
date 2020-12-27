@@ -16,7 +16,7 @@ SHELL=/bin/bash
 all : $(BINDIR)/$(TARGET) $(TARGET)
 
 $(BINDIR)/$(TARGET): $(SRC_C) $(INC_FILE)
-	@$(CXX) -o $(BINDIR)/$(TARGET) $(SRC_C) -I$(INCDIR) $(DEF) $(FLAG) $(OPENCVENV) -O3
+	@$(CXX) -o $(BINDIR)/$(TARGET) $(SRC_C) -I$(INCDIR) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
 clean:
 	rm -f $(wildcard ./src/*.o) $(wildcard ./bin/*)

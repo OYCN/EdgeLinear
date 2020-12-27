@@ -31,14 +31,14 @@
 
 #define IDX(x, y) [(y) + ((x)*cols)]
 
-static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap,int rows, int cols, uchar mydir, VECTOR_H<cv::Point>& edge_s);
+static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap,int rows, int cols, uchar mydir, VECTOR_H<POINT>& edge_s);
 
 // connecting 
-cv::Mat smartConnecting(uchar *gMap, uchar *fMap, int rows, int cols, VECTOR_H<VECTOR_H<cv::Point>>& edge_s)
+cv::Mat smartConnecting(uchar *gMap, uchar *fMap, int rows, int cols, VECTOR_H<VECTOR_H<POINT>>& edge_s)
 {
 	cv::Mat eMap = cv::Mat::zeros(rows, cols, CV_8UC1);
 	int h = rows, w = cols;
-	VECTOR_H<cv::Point>edges;
+	VECTOR_H<POINT>edges;
 	uchar mydir = 0;
 
 	for (int j = 1; j < h - 1; j++)
@@ -52,9 +52,9 @@ cv::Mat smartConnecting(uchar *gMap, uchar *fMap, int rows, int cols, VECTOR_H<V
 			}
 			//if(debug==0) {printf("a:%d e:%d\n", aMap IDX(0,0), eMap.data IDX(0,0));debug++;}
 			
-			VECTOR_H<cv::Point>().swap(edges);
+			VECTOR_H<POINT>().swap(edges);
 
-			edges.push_back(cv::Point(i, j)); // start point
+			edges.push_back(POINT(i, j)); // start point
 
 			// 判断走向  horizonal - left   vertical - up
 			mydir = ((fMap IDX(j,i)>>7)&0x01) ? DU : DL;
@@ -78,7 +78,7 @@ cv::Mat smartConnecting(uchar *gMap, uchar *fMap, int rows, int cols, VECTOR_H<V
 // changed and read: eMap
 // in/out: 
 
-static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int rows, int cols, uchar mydir, VECTOR_H<cv::Point>& edge_s)
+static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int rows, int cols, uchar mydir, VECTOR_H<POINT>& edge_s)
 {
 	int h = rows, w = cols, s = cols;
 	eMap.data[y*s + x] = 0; // for the second scan
@@ -111,7 +111,7 @@ static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int row
 				}
 				else if (eLeftCounter==1)
 				{
-					edge_s.push_back(cv::Point(x, y));
+					edge_s.push_back(POINT(x, y));
 					break;
 				}
 				else
@@ -133,7 +133,7 @@ static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int row
 						x = x - 1;
 						mydir = DL;
 					}
-					edge_s.push_back(cv::Point(x, y));
+					edge_s.push_back(POINT(x, y));
 				}
 			}
 			else if (CDIR_R(mydir))
@@ -150,7 +150,7 @@ static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int row
 				}
 				else if (eRightCounter==1)
 				{
-					edge_s.push_back(cv::Point(x, y));
+					edge_s.push_back(POINT(x, y));
 					break;
 				}
 				else
@@ -172,7 +172,7 @@ static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int row
 						x = x + 1;
 						mydir = DR;
 					}
-					edge_s.push_back(cv::Point(x, y));
+					edge_s.push_back(POINT(x, y));
 				}
 			}
 			else 
@@ -196,7 +196,7 @@ static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int row
 				}
 				else if (eUpCounter==1)
 				{
-					edge_s.push_back(cv::Point(x, y));
+					edge_s.push_back(POINT(x, y));
 					break;
 				}
 				else
@@ -218,7 +218,7 @@ static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int row
 						y = y - 1;
 						mydir = DU;
 					}
-					edge_s.push_back(cv::Point(x, y));
+					edge_s.push_back(POINT(x, y));
 				}
 			}
 			else if (CDIR_D(mydir))
@@ -235,7 +235,7 @@ static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int row
 				}
 				else if (eDownCounter==1)
 				{
-					edge_s.push_back(cv::Point(x, y));
+					edge_s.push_back(POINT(x, y));
 					break;
 				}
 				else
@@ -257,7 +257,7 @@ static void goMove(int x, int y, uchar *gMap, cv::Mat eMap, uchar *fMap, int row
 						y = y + 1;
 						mydir = DD;
 					}
-					edge_s.push_back(cv::Point(x, y));
+					edge_s.push_back(POINT(x, y));
 				}
 			}
 			else 
