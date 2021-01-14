@@ -14,10 +14,16 @@
 Main::Main(int _rows, int _cols, int _anchor_th, int _k)
 :rows(_rows), cols(_cols), anchor_th(_anchor_th), k(_k)
 {
+	int count;
+	HANDLE_ERROR(cudaGetDeviceCount(&count));
+	if(count!=1) {printf( "zero or multiple gpu\n"); exit( EXIT_FAILURE );}
+	cudaSetDevice(0);
+
 	dimBlock = dim3(32,32);
 	dimGrid = dim3((cols+27)/28, (rows+27)/28);
 	dimGridOld = dim3(rows, cols);
 	_InitED();
+	_InitPD();
 }
 
 /*
@@ -28,6 +34,7 @@ Main::Main(int _rows, int _cols, int _anchor_th, int _k)
 Main::~Main()
 {
 	_FreeED();
+	_FreePD();
 }
 
 /*
@@ -37,10 +44,6 @@ Main::~Main()
 */
 void Main::_InitED()
 {
-	int count;
-	HANDLE_ERROR(cudaGetDeviceCount(&count));
-	if(count!=1) {printf( "zero or multiple gpu\n"); exit( EXIT_FAILURE );}
-	cudaSetDevice(0);
 	HANDLE_ERROR(cudaMalloc(&gMapd, sizeof(uchar)*rows*cols));
 	#ifndef USE_OPENCV_GPU
 	HANDLE_ERROR(cudaMalloc(&blurd, sizeof(uchar)*rows*cols));
@@ -52,7 +55,7 @@ void Main::_InitED()
 	fMaph = new uchar[rows*cols];
 	eMaph = cv::Mat::zeros(rows, cols, CV_8UC1);
 	edge_set = new POINT[rows*cols];
-	edge_offset = new int[rows*cols];
+	edge_offset = new int[rows*cols+1];
 	edge_smart = new POINT[rows*cols];
 }
 /*
@@ -81,7 +84,7 @@ void Main::_FreeED()
 *    src: 原图像
 *Return: 无
 */
-void Main::PerProc(cv::Mat &src)
+void Main::PerProcED(cv::Mat &src)
 {
 	#ifndef USE_OPENCV_GPU
 	cv::cvtColor(src, grayImg, CV_RGB2GRAY);
@@ -107,7 +110,7 @@ cv::Mat Main::Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int
 	assert(src.rows == rows);
 	assert(src.cols == cols);
 
-	PerProc(src);
+	PerProcED(src);
 
 	#ifndef USE_OPENCV_GPU
 	// 本次数据拷贝

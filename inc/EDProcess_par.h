@@ -12,12 +12,11 @@
 #include "thrust/host_vector.h"
 
 // 编译配置
-#define DEFIMG "./img/1.png"	// 默认图片
-// #define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
-// #define USE_CPUDP	// 使用CPU-DP多边形化算法
-// #define USE_GPUDP	// 使用GPU-DP多边形化算法
+#define DEFIMG "./img/7.jpg"	// 默认图片
+#define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
 #define SHOW_IMG	// 是否显示图片
 #define TIM_GPUDP	// 是否显示GPU DP的时间
+// #define DEBUG
 // #define USE_OPENCV_GPU
 
 #ifdef USE_CHECK
@@ -26,7 +25,6 @@
 #endif
 
 // 类型定义
-
 #define VECTOR_H thrust::host_vector
 #define VECTOR_D thrust::device_vector
 #define POINT mygpu::Point
@@ -97,6 +95,7 @@ class Main
 		Main(int _rows=0, int _cols=0, int _anchor_th=6, int _k=2);
 		~Main();
 		cv::Mat Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int &edge_seg_len);
+		int runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu);
 	private:
 	// ========== ED ==========
 		uchar *gMapd, *fMapd, *blurd;
@@ -135,7 +134,8 @@ class Main
 		void _FreeED();
 		void _InitPD();
 		void _FreePD();
-		void PerProc(cv::Mat &src);
+		void PerProcED(cv::Mat &src);
+		void PerProcDP();
 		void goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx);
 		cv::Mat smartConnecting();
 		
@@ -143,11 +143,7 @@ class Main
 
 // 函数定义
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
-#ifdef USE_CPUDP
+__global__ void kernelDP(POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon);
 void DouglasPeucker(const VECTOR_H<POINT> &edge, VECTOR_H<POINT> &line, float epsilon);
-#endif
-#ifdef USE_GPUDP
-__global__ void DouglasPeucker(POINT **edge_seg_d, int *edge_offset_d, int edge_seg_len, POINT *stack, bool *flags_d, float epsilon);
-#endif
 
 #endif
