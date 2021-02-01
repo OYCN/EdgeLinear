@@ -13,16 +13,13 @@
 
 // 编译配置
 #define DEFIMG "./img/7.jpg"	// 默认图片
-#define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
+// #define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
 #define SHOW_IMG	// 是否显示图片
-#define TIM_GPUDP	// 是否显示GPU DP的时间
+// #define TIM_GPUDP	// 是否显示GPU DP的时间
+// #define TIM_MAIN	// 是否显示main中出现的时间
 // #define DEBUG
 // #define USE_OPENCV_GPU
-
-#ifdef USE_CHECK
-#define USE_CPUDP
-#define USE_GPUDP
-#endif
+#define VIDEO_MOD
 
 // 类型定义
 #define VECTOR_H std::vector
@@ -95,8 +92,11 @@ class Main
 		
 		Main(int _rows=0, int _cols=0, int _anchor_th=6, int _k=2);
 		~Main();
+		void setTH(int value);
+		int getTH();
 		cv::Mat Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int &edge_seg_len);
-		int runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu);
+		// int runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu);
+		void runDP(bool *&flag_in);
 	private:
 	// ========== ED ==========
 		uchar *gMapd, *fMapd, *blurd;

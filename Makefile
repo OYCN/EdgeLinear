@@ -11,22 +11,22 @@ INC = -I$(INCDIR) -I$(CUDA)
 
 all: bin/run run
 
-tmp/EDProcess_base.o: src/EDProcess_base.cu
+tmp/EDProcess_base.o: src/EDProcess_base.cu $(INC_FILE)
 	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
-tmp/getAll.o: src/getAll.cu
+tmp/getAll.o: src/getAll.cu $(INC_FILE)
 	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
-tmp/main.o: src/main.cpp
+tmp/main.o: src/main.cpp $(INC_FILE)
 	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
-tmp/toLine.o: src/toLine.cu
+tmp/toLine.o: src/toLine.cu $(INC_FILE)
 	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
-tmp/smartConnecting.o: src/smartConnecting.cpp
+tmp/smartConnecting.o: src/smartConnecting.cpp $(INC_FILE)
 	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
-tmp/normalDP.o: src/normalDP.cpp
+tmp/normalDP.o: src/normalDP.cpp $(INC_FILE)
 	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g -fopenmp
 
 bin/run: tmp/EDProcess_base.o\

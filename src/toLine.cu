@@ -55,27 +55,37 @@ void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_le
 *Parameters: 无
 *Return: 无
 */
-int Main::runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu)
+// int Main::runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu)
+void Main::runDP(bool *&flag_in)
 {
+	#ifdef TIM_GPUDP
 	TDEF(gpu_h2d);
 	TDEF(gpu_com);
 	TDEF(gpu_d2h);
 	TDEF(gpu_dp2vec);
-	int counter = 0;
+	#endif
 	#ifndef DEBUG
+	#ifdef TIM_GPUDP
 	TSTART(gpu_h2d);
+	#endif
 	PerProcDP();
+	#ifdef TIM_GPUDP
 	TEND(gpu_h2d);
 	TPRINTMS(gpu_h2d, "  gpu_h2d: ");
 	TSTART(gpu_com);
+	#endif
 	kernelDP<<<dimGrid_DP,dimBlock_DP>>>(edge_set_d, edge_offset_d, edge_offset_len, stack_d, flags_d, 5);
 	HANDLE_ERROR(cudaDeviceSynchronize());
+	#ifdef TIM_GPUDP
 	TEND(gpu_com);
 	TPRINTMS(gpu_com, "  gpu_com: ");
 	TSTART(gpu_d2h);
+	#endif
 	HANDLE_ERROR(cudaMemcpy(flags_h, flags_d, sizeof(bool)*rows*cols, cudaMemcpyDeviceToHost));
+	#ifdef TIM_GPUDP
 	TEND(gpu_d2h);
 	TPRINTMS(gpu_d2h, "  gpu_d2h: ");
+	#endif
 	#endif
 	#ifdef DEBUG
 	POINT *stack = new POINT[rows*cols];
@@ -84,24 +94,29 @@ int Main::runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu)
 		testDP(i, edge_set, edge_offset, edge_offset_len, stack, flags_h, 5);
 	delete[] stack;
 	#endif
-	TSTART(gpu_dp2vec);
-	for(int i=0; i<(edge_offset_len-1); i++)
-	{
-		VECTOR_H<POINT> oneline;
-		for(int j=edge_offset[i]; j<edge_offset[i+1]; j++)
-		{
-			if(flags_h[j])
-			{
-				oneline.push_back(edge_set[j]);
-				counter++;
-			}
-		}
-		line_all_gpu.push_back(oneline);
-		VECTOR_H<POINT>().swap(oneline);
-	}
-	TEND(gpu_dp2vec);
-	TPRINTMS(gpu_dp2vec, "  gpu_dp2vec: ");
-	return counter;
+	flag_in = flags_h;
+	// #ifdef TIM_GPUDP
+	// TSTART(gpu_dp2vec);
+	// #endif
+	// for(int i=0; i<(edge_offset_len-1); i++)
+	// {
+	// 	VECTOR_H<POINT> oneline;
+	// 	for(int j=edge_offset[i]; j<edge_offset[i+1]; j++)
+	// 	{
+	// 		if(flags_h[j])
+	// 		{
+	// 			oneline.push_back(edge_set[j]);
+	// 			counter++;
+	// 		}
+	// 	}
+	// 	line_all_gpu.push_back(oneline);
+	// 	VECTOR_H<POINT>().swap(oneline);
+	// }
+	// #ifdef TIM_GPUDP
+	// TEND(gpu_dp2vec);
+	// TPRINTMS(gpu_dp2vec, "  gpu_dp2vec: ");
+	// #endif
+	// return counter;
 }
 
 __global__ void kernelDP(POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon)

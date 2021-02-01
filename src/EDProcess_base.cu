@@ -77,6 +77,15 @@ void Main::_FreeED()
 	delete[] edge_smart;
 }
 
+void Main::setTH(int value)
+{
+	anchor_th = value;
+}
+
+int Main::getTH()
+{
+	return anchor_th;
+}
 
 /*
 *Summary: 对原图像进行预处理
