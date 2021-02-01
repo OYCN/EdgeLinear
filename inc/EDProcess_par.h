@@ -14,7 +14,7 @@
 // 编译配置
 #define DEFIMG "./img/7.jpg"	// 默认图片
 #define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
-// #define SHOW_IMG	// 是否显示图片
+#define SHOW_IMG	// 是否显示图片
 #define TIM_GPUDP	// 是否显示GPU DP的时间
 // #define DEBUG
 // #define USE_OPENCV_GPU
@@ -25,8 +25,9 @@
 #endif
 
 // 类型定义
-#define VECTOR_H thrust::host_vector
-#define VECTOR_D thrust::device_vector
+#define VECTOR_H std::vector
+// #define VECTOR_H thrust::host_vector
+// #define VECTOR_D thrust::device_vector
 #define POINT mygpu::Point
 
 #define ERROR(x) {printf( "%s in %s at line %d\n", (x), __FILE__, __LINE__ );exit( EXIT_FAILURE );}
@@ -146,6 +147,7 @@ class Main
 // 函数定义
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
 __global__ void kernelDP(POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon);
+void cpuDP(VECTOR_H<VECTOR_H<POINT>> &edge_seg_vec, VECTOR_H<VECTOR_H<POINT>> &line_all_cpu);
 void DouglasPeucker(const VECTOR_H<POINT> &edge, VECTOR_H<POINT> &line, float epsilon);
 
 #endif

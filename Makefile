@@ -1,26 +1,46 @@
-CXX = nvcc
-TARGET = run
-SRCDIR = src
 INCDIR = inc
-OBJDIR = tmp
-BINDIR = bin
+CUDA = /usr/local/cuda-11.2/include
 OPENCVENV = $(shell pkg-config opencv --cflags --libs)
-SRC_C = $(wildcard $(SRCDIR)/*.cpp $(SRCDIR)/*.cu)
 INC_FILE = $(wildcard $(INCDIR)/*.h)
 DEF = -DLINUX -DTIMING
-FLAG = 
 SHELL=/bin/bash
+INC = -I$(INCDIR) -I$(CUDA)
+# LIB = -L/usr/local/cuda-11.2/lib64/
 
 .PHONY : all clean
 
-all : $(BINDIR)/$(TARGET) $(TARGET)
+all: bin/run run
 
-$(BINDIR)/$(TARGET): $(SRC_C) $(INC_FILE)
-	@$(CXX) -o $(BINDIR)/$(TARGET) $(SRC_C) -I$(INCDIR) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+tmp/EDProcess_base.o: src/EDProcess_base.cu
+	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+
+tmp/getAll.o: src/getAll.cu
+	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+
+tmp/main.o: src/main.cpp
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+
+tmp/toLine.o: src/toLine.cu
+	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+
+tmp/smartConnecting.o: src/smartConnecting.cpp
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+
+tmp/normalDP.o: src/normalDP.cpp
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g -fopenmp
+
+bin/run: tmp/EDProcess_base.o\
+		 tmp/getAll.o\
+		 tmp/main.o\
+		 tmp/toLine.o\
+		 tmp/smartConnecting.o\
+		 tmp/normalDP.o
+	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
 clean:
-	rm -f $(wildcard ./src/*.o) $(wildcard ./bin/*)
-$(TARGET):$(BINDIR)/$(TARGET)
+	rm -f $(wildcard ./tmp/*.o) $(wildcard ./bin/*)
+	
+run: bin/run
 	@echo -e "\033[33mRun:\033[0m"
-	@./$(BINDIR)/$(TARGET)
+	@bin/run
 	@echo -e "\033[33mend\033[0m"

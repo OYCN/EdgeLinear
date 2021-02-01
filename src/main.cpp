@@ -32,6 +32,10 @@ int main(int argc, char *args[])
 		return 0;
 	}
 
+	cv::Mat imgED = cv::Mat::zeros(src.rows, src.cols, CV_8UC3);
+	cv::Mat imgDP_C = cv::Mat::zeros(src.rows, src.cols, CV_8UC3);
+	cv::Mat imgDP_G = cv::Mat::zeros(src.rows, src.cols, CV_8UC3);
+
 	// 主类初始化
 	Main MainClass(src.rows, src.cols);
 
@@ -44,6 +48,13 @@ int main(int argc, char *args[])
 	TPRINTMS(EdgeDrawing, "EdgeDrawing: ");
 	std::cout << "Number of Edge Segment : " << edge_seg_len-1 << std::endl;
 	std::cout << "Number of Line Point : " << edge_seg_offset[edge_seg_len-1] << std::endl;
+	int max = 0;
+	for(int i=0; i<edge_seg_len; i++)
+	{
+		int l = edge_seg_offset[i+1]-edge_seg_offset[i];
+		if(l > max) max = l;
+	}
+	std::cout << "Max len is : " << max << std::endl;
 
 	// gpu 的 DP算法
 	TSTART(SearchLines_gpu);
@@ -68,14 +79,7 @@ int main(int argc, char *args[])
 	TEND(EDToVector);TPRINTMS(EDToVector, "EDToVector: ");
 	// cpu 的 DP 算法
 	TSTART(SearchLines_cpu);
-	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator e=edge_seg_vec.begin(); e != edge_seg_vec.end(); e++)
-	{
-		VECTOR_H<POINT> line;
-		// cv::approxPolyDP(*e, line, 5, false);
-		// mygpu::approxPolyDP(*e, line, 5, false);
-		DouglasPeucker(*e, line, 5);
-		line_all_cpu.push_back(line);
-	}
+	cpuDP(edge_seg_vec, line_all_cpu);
 	TEND(SearchLines_cpu);TPRINTMS(SearchLines_cpu, "SearchLines_CPU: ");
 	// 统计点个数
 	point_sum_cpu = 0;
@@ -97,6 +101,10 @@ int main(int argc, char *args[])
 			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 0;
 			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 0;
 			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 255;
+
+			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 0;
+			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 0;
+			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 255;
 		}
 	}
 	// 绘制GPU的DP后的直线
@@ -107,6 +115,7 @@ int main(int argc, char *args[])
 			for(int idx=0; idx < (line_all_gpu[i].size()-1); idx++)
 			{
 				cv::line(result, line_all_gpu[i][idx], line_all_gpu[i][idx+1], cv::Scalar(0, 255, 0), 1, 4);
+				cv::line(imgDP_C, line_all_gpu[i][idx], line_all_gpu[i][idx+1], cv::Scalar(0, 255, 0), 1, 4);
 			}
 		}
 	}
@@ -116,6 +125,7 @@ int main(int argc, char *args[])
 		for(int idx=0; idx < ((*l).size()-1); idx++)
 		{
 			cv::line(result, (*l)[idx], (*l)[idx+1], cv::Scalar(255, 0, 0), 1, 4);
+			cv::line(imgDP_G, (*l)[idx], (*l)[idx+1], cv::Scalar(255, 0, 0), 1, 4);
 		}
 	}
 	#ifdef USE_CHECK
@@ -158,7 +168,17 @@ int main(int argc, char *args[])
 	cv::imwrite("out.png", result);
 	#ifdef SHOW_IMG
 	cv::namedWindow("result",CV_WINDOW_NORMAL);
+	cv::namedWindow("org",CV_WINDOW_NORMAL);
+	cv::namedWindow("gray",CV_WINDOW_NORMAL);
+	cv::namedWindow("ED",CV_WINDOW_NORMAL);
+	cv::namedWindow("DP_CPU",CV_WINDOW_NORMAL);
+	cv::namedWindow("DP_GPU",CV_WINDOW_NORMAL);
 	cv::imshow("result", result);
+	cv::imshow("org", src);
+	cv::imshow("gray", grayImg);
+	cv::imshow("ED", imgED);
+	cv::imshow("DP_CPU", imgDP_C);
+	cv::imshow("DP_GPU", imgDP_G);
 	cv::waitKey();
 	#endif
 	#endif	//JUST_ED
