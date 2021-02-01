@@ -14,7 +14,7 @@
 // 编译配置
 #define DEFIMG "./img/7.jpg"	// 默认图片
 #define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
-#define SHOW_IMG	// 是否显示图片
+// #define SHOW_IMG	// 是否显示图片
 #define TIM_GPUDP	// 是否显示GPU DP的时间
 // #define DEBUG
 // #define USE_OPENCV_GPU
@@ -113,9 +113,11 @@ class Main
 		int cols, rows;
 		int k, anchor_th;
 
-		dim3 dimBlock;
-		dim3 dimGrid;
-		dim3 dimGridOld;
+		dim3 dimBlock_ED;
+		dim3 dimGrid_ED;
+		dim3 dimBlock_DP;
+		dim3 dimGrid_DP;
+		// dim3 dimGridOld_FULL;
 
 		POINT *edge_smart;	// 用于储存smart函数中临时数据
 		int edge_smart_idx;

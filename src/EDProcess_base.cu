@@ -19,9 +19,7 @@ Main::Main(int _rows, int _cols, int _anchor_th, int _k)
 	if(count!=1) {printf( "zero or multiple gpu\n"); exit( EXIT_FAILURE );}
 	cudaSetDevice(0);
 
-	dimBlock = dim3(32,32);
-	dimGrid = dim3((cols+27)/28, (rows+27)/28);
-	dimGridOld = dim3(rows, cols);
+	// dimGridOld_FULL = dim3(rows, cols);
 	_InitED();
 	_InitPD();
 }
@@ -44,6 +42,8 @@ Main::~Main()
 */
 void Main::_InitED()
 {
+	dimBlock_ED = dim3(32,32);
+	dimGrid_ED = dim3((cols+27)/28, (rows+27)/28);
 	HANDLE_ERROR(cudaMalloc(&gMapd, sizeof(uchar)*rows*cols));
 	#ifndef USE_OPENCV_GPU
 	HANDLE_ERROR(cudaMalloc(&blurd, sizeof(uchar)*rows*cols));
@@ -100,8 +100,10 @@ void Main::PerProcED(cv::Mat &src)
 /*
 *Summary: 对传入图像进行单次边缘提取
 *Parameters:
-*     blurImg: 传入图像
+*     src: 传入图像
 *     edge_seg: 用于保存边缘信息
+*     edge_seg_offset: 每个线段在edge_seg中的偏移量
+*     edge_seg_len: edge_seg_offset的长度
 *Return: 边缘信息的图像
 */
 cv::Mat Main::Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int &edge_seg_len)
@@ -121,7 +123,7 @@ cv::Mat Main::Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int
 	#endif
 
 	// 核函数启动
-	kernelC<<< dimGrid, dimBlock >>>(blurd, gMapd, fMapd, cols, rows, anchor_th, k);
+	kernelC<<< dimGrid_ED, dimBlock_ED >>>(blurd, gMapd, fMapd, cols, rows, anchor_th, k);
 	
 	// 核函数同步
 	HANDLE_ERROR(cudaDeviceSynchronize());

@@ -9,12 +9,7 @@
 TDEF(EdgeDrawing);
 TDEF(SearchLines_cpu);
 TDEF(SearchLines_gpu);
-#ifdef TIM_GPUDP
-TDEF(Sgpu_h2d);
-TDEF(Sgpu_kernel);
-TDEF(Sgpu_d2h);
-TDEF(Sgpu_dealf);
-#endif
+TDEF(EDToVector);
 // TDEF(deal);
 // TDEF(proc);
 
@@ -50,12 +45,15 @@ int main(int argc, char *args[])
 	std::cout << "Number of Edge Segment : " << edge_seg_len-1 << std::endl;
 	std::cout << "Number of Line Point : " << edge_seg_offset[edge_seg_len-1] << std::endl;
 
+	// gpu 的 DP算法
 	TSTART(SearchLines_gpu);
 	point_sum_gpu = MainClass.runDP(line_all_gpu);
 	TEND(SearchLines_gpu);TPRINTMS(SearchLines_gpu, "SearchLines_GPU: ");
 	std::cout << "line points_gpu is " << point_sum_gpu << std::endl;
 
 	#ifndef JUST_ED
+	// 将ED化线段转为vector类型
+	TSTART(EDToVector);
 	VECTOR_H<VECTOR_H<POINT>> edge_seg_vec;
 	for(int i=0; i<(edge_seg_len-1); i++)
 	{
@@ -67,6 +65,8 @@ int main(int argc, char *args[])
 		edge_seg_vec.push_back(tmp);
 		VECTOR_H<POINT>().swap(tmp);
 	}
+	TEND(EDToVector);TPRINTMS(EDToVector, "EDToVector: ");
+	// cpu 的 DP 算法
 	TSTART(SearchLines_cpu);
 	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator e=edge_seg_vec.begin(); e != edge_seg_vec.end(); e++)
 	{
@@ -77,6 +77,7 @@ int main(int argc, char *args[])
 		line_all_cpu.push_back(line);
 	}
 	TEND(SearchLines_cpu);TPRINTMS(SearchLines_cpu, "SearchLines_CPU: ");
+	// 统计点个数
 	point_sum_cpu = 0;
 	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator l=line_all_cpu.begin(); l != line_all_cpu.end(); l++)
 	{
@@ -84,9 +85,11 @@ int main(int argc, char *args[])
 	}
 	std::cout << "line points_cpu is " << point_sum_cpu << std::endl;
 
+	// 绘制原图
 	cv::cvtColor(src, grayImg, CV_RGB2GRAY);
 	grayImg /= 2; 
 	cv::cvtColor(grayImg, result, CV_GRAY2RGB);
+	// 绘制边缘
 	for(int i=0; i<(edge_seg_len-1); i++)
 	{
 		for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
@@ -96,6 +99,7 @@ int main(int argc, char *args[])
 			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 255;
 		}
 	}
+	// 绘制GPU的DP后的直线
 	for(int i=0; i<line_all_gpu.size(); i++)
 	{
 		if(line_all_gpu[i].size()>1)
@@ -106,7 +110,7 @@ int main(int argc, char *args[])
 			}
 		}
 	}
-	// draw lines
+	// 绘制CPU的DP后的直线
 	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator l=line_all_cpu.begin(); l != line_all_cpu.end(); l++)
 	{
 		for(int idx=0; idx < ((*l).size()-1); idx++)
@@ -115,6 +119,7 @@ int main(int argc, char *args[])
 		}
 	}
 	#ifdef USE_CHECK
+	// 检验GPU与CPU的DP结果是否相同
 	bool check_success = true;
 	if(line_all_cpu.size() == line_all_gpu.size())
 	{

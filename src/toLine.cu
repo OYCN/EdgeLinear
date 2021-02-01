@@ -1,4 +1,5 @@
 #include "EDProcess_par.h"
+#include "Timer.h"
 
 /*
 *Summary: 类所需内存的申请等初始化操作，一个实例仅需一次
@@ -12,6 +13,13 @@ void Main::_InitPD()
 	HANDLE_ERROR(cudaMalloc(&flags_d, sizeof(bool)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&stack_d, sizeof(POINT)*rows*cols));
 	flags_h = new bool[rows*cols];
+	// dimBlock_DP = dim3(1,1);
+	// 仅支持一维
+	dimBlock_DP = dim3(16,1);
+	// dimBlock_DP = dim3(32,1);
+	// dimGrid_DP = dim3(cols, rows);
+	// dimGrid_DP = dim3(cols*rows / 32, 1);
+	dimGrid_DP = dim3(cols*rows / 16, 1);
 }
 
 /*
@@ -49,12 +57,25 @@ void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_le
 */
 int Main::runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu)
 {
+	TDEF(gpu_h2d);
+	TDEF(gpu_com);
+	TDEF(gpu_d2h);
+	TDEF(gpu_dp2vec);
 	int counter = 0;
 	#ifndef DEBUG
+	TSTART(gpu_h2d);
 	PerProcDP();
-	kernelDP<<<edge_offset_len-1,1>>>(edge_set_d, edge_offset_d, edge_offset_len, stack_d, flags_d, 5);
+	TEND(gpu_h2d);
+	TPRINTMS(gpu_h2d, "  gpu_h2d: ");
+	TSTART(gpu_com);
+	kernelDP<<<dimGrid_DP,dimBlock_DP>>>(edge_set_d, edge_offset_d, edge_offset_len, stack_d, flags_d, 5);
 	HANDLE_ERROR(cudaDeviceSynchronize());
+	TEND(gpu_com);
+	TPRINTMS(gpu_com, "  gpu_com: ");
+	TSTART(gpu_d2h);
 	HANDLE_ERROR(cudaMemcpy(flags_h, flags_d, sizeof(bool)*rows*cols, cudaMemcpyDeviceToHost));
+	TEND(gpu_d2h);
+	TPRINTMS(gpu_d2h, "  gpu_d2h: ");
 	#endif
 	#ifdef DEBUG
 	POINT *stack = new POINT[rows*cols];
@@ -63,6 +84,7 @@ int Main::runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu)
 		testDP(i, edge_set, edge_offset, edge_offset_len, stack, flags_h, 5);
 	delete[] stack;
 	#endif
+	TSTART(gpu_dp2vec);
 	for(int i=0; i<(edge_offset_len-1); i++)
 	{
 		VECTOR_H<POINT> oneline;
@@ -77,6 +99,8 @@ int Main::runDP(VECTOR_H<VECTOR_H<POINT>> &line_all_gpu)
 		line_all_gpu.push_back(oneline);
 		VECTOR_H<POINT>().swap(oneline);
 	}
+	TEND(gpu_dp2vec);
+	TPRINTMS(gpu_dp2vec, "  gpu_dp2vec: ");
 	return counter;
 }
 
