@@ -32,13 +32,13 @@ int main(int argc, char *args[])
 	if(argc!=1) src = cv::imread(args[1]);
 	else src = cv::imread(DEFIMG);
 
-	// cv::VideoCapture capture(0);
-	// if(!capture.isOpened())
-	// {
-	// 	printf("[%s][%d]could not load video data...\n",__FUNCTION__,__LINE__);
-	// 	return -1;
-	// }
-	// capture.read(src);
+	cv::VideoCapture capture("img/2.mp4");
+	if(!capture.isOpened())
+	{
+		printf("[%s][%d]could not load video data...\n",__FUNCTION__,__LINE__);
+		return -1;
+	}
+	capture.read(src);
 
 	if (src.empty()) 
 	{
@@ -69,6 +69,7 @@ int main(int argc, char *args[])
 	#endif
 	// 边缘提取
 	eMap = MainClass.Process(src, edge_seg, edge_seg_offset, edge_seg_len);
+	// cv::imshow("eMap", eMap*255);
 	#ifdef TIM_MAIN
 	TEND(EdgeDrawing);
 	TPRINTMS(EdgeDrawing, "EdgeDrawing: ");
@@ -163,9 +164,9 @@ int main(int argc, char *args[])
 			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 0;
 			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 255;
 
-			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 0;
-			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 0;
-			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 255;
+			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 255;
+			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 255;
+			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 0;
 		}
 	}
 	// 绘制GPU的DP后的直线

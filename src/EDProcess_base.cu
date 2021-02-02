@@ -121,6 +121,9 @@ cv::Mat Main::Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int
 	assert(src.rows == rows);
 	assert(src.cols == cols);
 
+	memset(eMaph.data, 0, rows*cols*sizeof(uchar));
+	// cv::imshow("eMaph", eMaph*255);
+
 	PerProcED(src);
 
 	#ifndef USE_OPENCV_GPU
@@ -143,6 +146,8 @@ cv::Mat Main::Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int
 
 	// 锚点连接，边缘提取
 	cv::Mat eMap = smartConnecting();
+
+	// cv::imshow("eMap", eMap*255);
 
 	edge_seg = edge_set;
 	edge_seg_offset = edge_offset;
