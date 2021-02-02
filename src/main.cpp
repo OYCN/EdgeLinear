@@ -3,10 +3,11 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <math.h>
+#include <sstream>
 
 #define PI 3.14159265
 
-TDEF(LOOP_TIME);
+// TDEF(LOOP_TIME);
 
 #ifdef TIM_MAIN
 TDEF(EdgeDrawing);
@@ -56,9 +57,12 @@ int main(int argc, char *args[])
 		return -1;
 	}
 	Main MainClass(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH));
+	std::cout << capture.get(CV_CAP_PROP_FRAME_HEIGHT) << " * " << capture.get(CV_CAP_PROP_FRAME_WIDTH) << std::endl;
+	double fps_time;
 	while(capture.read(src))
 	{
-	TSTART(LOOP_TIME);
+	// TSTART(LOOP_TIME);
+	fps_time = (double)cv::getTickCount();
 	#endif
 	#ifndef VIDEO_MOD
 	// 主类初始化
@@ -90,6 +94,7 @@ int main(int argc, char *args[])
 	TSTART(SearchLines_gpu);
 	#endif
 	// point_sum_gpu = MainClass.runDP(flag);
+	#ifdef DP_GPU
 	MainClass.runDP(flag);
 	point_sum_gpu = 0;
 	for(int i=0; i<(edge_seg_len-1); i++)
@@ -106,6 +111,7 @@ int main(int argc, char *args[])
 		line_all_gpu.push_back(oneline);
 		VECTOR_H<POINT>().swap(oneline);
 	}
+	#endif
 	#ifdef TIM_MAIN
 	TEND(SearchLines_gpu);TPRINTMS(SearchLines_gpu, "SearchLines_GPU: ");
 	#endif
@@ -113,11 +119,11 @@ int main(int argc, char *args[])
 	std::cout << "line points_gpu is " << point_sum_gpu << std::endl;
 	#endif
 	#ifndef JUST_ED
-	// 将ED化线段转为vector类型
+	// 将ED线段转为vector类型
 	#ifdef TIM_MAIN
 	TSTART(EDToVector);
 	#endif
-	#ifndef VIDEO_MOD
+	#ifdef DP_CPU
 	VECTOR_H<VECTOR_H<POINT>> edge_seg_vec;
 	for(int i=0; i<(edge_seg_len-1); i++)
 	{
@@ -140,6 +146,8 @@ int main(int argc, char *args[])
 	#ifdef TIM_MAIN
 	TEND(SearchLines_cpu);TPRINTMS(SearchLines_cpu, "SearchLines_CPU: ");
 	#endif
+	#endif
+	#ifndef VIDEO_MOD
 	// 统计点个数
 	point_sum_cpu = 0;
 	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator l=line_all_cpu.begin(); l != line_all_cpu.end(); l++)
@@ -149,9 +157,10 @@ int main(int argc, char *args[])
 	std::cout << "line points_cpu is " << point_sum_cpu << std::endl;
 	#endif
 	// 绘制原图
-	cv::cvtColor(src, grayImg, CV_RGB2GRAY);
-	grayImg /= 2; 
-	cv::cvtColor(grayImg, result, CV_GRAY2RGB);
+	// cv::cvtColor(src, grayImg, CV_RGB2GRAY);
+	// grayImg /= 2; 
+	// cv::cvtColor(grayImg, result, CV_GRAY2RGB);
+	src.copyTo(result);
 	cv::Mat imgED = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
 	cv::Mat imgDP_C = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
 	cv::Mat imgDP_G = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
@@ -169,6 +178,7 @@ int main(int argc, char *args[])
 			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 0;
 		}
 	}
+	#ifdef DP_GPU
 	// 绘制GPU的DP后的直线
 	for(int i=0; i<line_all_gpu.size(); i++)
 	{
@@ -181,7 +191,8 @@ int main(int argc, char *args[])
 			}
 		}
 	}
-	#ifndef VIDEO_MOD
+	#endif
+	#ifdef DP_CPU
 	// 绘制CPU的DP后的直线
 	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator l=line_all_cpu.begin(); l != line_all_cpu.end(); l++)
 	{
@@ -228,37 +239,53 @@ int main(int argc, char *args[])
 	if(check_success) std::cout << "check success" << std::endl;
 	else std::cout << "check failed" << std::endl;
 	#endif
-
+	#ifdef VIDEO_MOD
+	fps_time = cv::getTickFrequency() / ((double)cv::getTickCount() - fps_time);
+	std::ostringstream buffer;
+	buffer << "FPS " << fps_time;
+	cv::putText(result,
+			buffer.str(),
+			cv::Point(5,20),
+			cv::FONT_HERSHEY_SIMPLEX,
+			0.5,
+			cv::Scalar(255,0,255));
+	#endif
 	#ifndef VIDEO_MOD
 	cv::imwrite("out.png", result);
 	#endif
 	#ifdef SHOW_IMG
-	cv::namedWindow("result",CV_WINDOW_NORMAL);
-	cv::namedWindow("org",CV_WINDOW_NORMAL);
-	cv::namedWindow("gray",CV_WINDOW_NORMAL);
+	// cv::namedWindow("org",CV_WINDOW_NORMAL);
+	// cv::namedWindow("gray",CV_WINDOW_NORMAL);
 	cv::namedWindow("ED",CV_WINDOW_NORMAL);
-	cv::namedWindow("DP_CPU",CV_WINDOW_NORMAL);
+	// cv::namedWindow("DP_CPU",CV_WINDOW_NORMAL);
 	cv::namedWindow("DP_GPU",CV_WINDOW_NORMAL);
-	cv::imshow("result", result);
-	cv::imshow("org", src);
-	cv::imshow("gray", grayImg);
+	// cv::namedWindow("result",CV_WINDOW_NORMAL);
+	// cv::imshow("org", src);
+	// cv::imshow("gray", grayImg);
 	cv::imshow("ED", imgED);
-	// cv::imshow("DP_CPU", imgDP_C);
+	#ifdef DP_CPU
+	cv::imshow("DP_CPU", imgDP_C);
+	#endif
+	#ifdef DP_GPU
 	cv::imshow("DP_GPU", imgDP_G);
+	#endif
+	cv::imshow("result", result);
 	#ifndef VIDEO_MOD
 	cv::waitKey();
 	#endif
 	#endif
 	#endif	//JUST_ED
-	#ifndef VIDEO_MOD
-	VECTOR_H<VECTOR_H<POINT>>().swap(line_all_cpu);
-	#endif
 	// imgED.release();
 	// imgDP_C.release();
 	// imgDP_G.release();
+	#ifdef DP_GPU
 	VECTOR_H<VECTOR_H<POINT>>().swap(line_all_gpu);
+	#endif
+	#ifdef DP_CPU
+	VECTOR_H<VECTOR_H<POINT>>().swap(line_all_cpu);
+	#endif
 	#ifdef VIDEO_MOD
-	TEND(LOOP_TIME);TPRINTMS(LOOP_TIME, "LOOP_TIME: ");
+	// TEND(LOOP_TIME);TPRINTMS(LOOP_TIME, "LOOP_TIME: ");
 	char key = cv::waitKey(1);
 	if (key==27)	// esc退出
 	{

@@ -20,6 +20,8 @@
 // #define DEBUG
 // #define USE_OPENCV_GPU
 #define VIDEO_MOD
+#define DP_GPU
+// #define DP_CPU
 
 // 类型定义
 #define VECTOR_H std::vector
