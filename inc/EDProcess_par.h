@@ -11,18 +11,6 @@
 #include "thrust/device_vector.h"
 #include "thrust/host_vector.h"
 
-// 编译配置
-#define DEFIMG "./img/7.jpg"	// 默认图片
-// #define USE_CHECK	// 运行GPUDP与CPUDP并进行结果比较
-#define SHOW_IMG	// 是否显示图片
-// #define TIM_GPUDP	// 是否显示GPU DP的时间
-// #define TIM_MAIN	// 是否显示main中出现的时间
-// #define DEBUG
-// #define USE_OPENCV_GPU
-#define VIDEO_MOD
-#define DP_GPU
-// #define DP_CPU
-
 // 类型定义
 #define VECTOR_H std::vector
 // #define VECTOR_H thrust::host_vector

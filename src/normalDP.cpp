@@ -28,16 +28,10 @@ void DouglasPeucker(const VECTOR_H<POINT> &edge, VECTOR_H<POINT> &line, float ep
 	memset(flags, 0, sizeof(bool)*edge_len);
 
 	stack.push_back(POINT( 0,edge_len - 1 ));
-	#ifdef DEBUG
-	std::cout << "[CPU]stack push AB(" << 0 << ", " << edge_len - 1 << ")" << std::endl;
-	#endif
 	while (!stack.empty())
 	{
 		wp = stack[stack.size() - 1];
 		stack.pop_back();
-		#ifdef DEBUG
-		std::cout << "[CPU]stack pop (" << wp.x << ", " << wp.y << ")" << std::e ndl;
-		#endif
 		dmax = 0;
 		da = edge[wp.y].y - edge[wp.x].y;
 		db = edge[wp.x].x - edge[wp.y].x;
@@ -56,13 +50,7 @@ void DouglasPeucker(const VECTOR_H<POINT> &edge, VECTOR_H<POINT> &line, float ep
 		if (dmax >= epsilon)
 		{
 			stack.push_back(POINT( wp.x, C ));
-			#ifdef DEBUG
-			std::cout << "[CPU]stack push AC(" << wp.x << ", " << C << ")" << std::endl;
-			#endif
 			stack.push_back(POINT( C, wp.y ));
-			#ifdef DEBUG
-			std::cout << "[CPU]stack push CB(" << C << ", " << wp.y << ")" << std::endl;
-			#endif
 		}
 		else
 		{

@@ -45,9 +45,7 @@ void Main::_InitED()
 	dimBlock_ED = dim3(32,32);
 	dimGrid_ED = dim3((cols+27)/28, (rows+27)/28);
 	HANDLE_ERROR(cudaMalloc(&gMapd, sizeof(uchar)*rows*cols));
-	#ifndef USE_OPENCV_GPU
 	HANDLE_ERROR(cudaMalloc(&blurd, sizeof(uchar)*rows*cols));
-	#endif
 	HANDLE_ERROR(cudaMalloc(&fMapd, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMemset(gMapd, 0, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMemset(fMapd, 0, sizeof(uchar)*rows*cols));
@@ -66,9 +64,7 @@ void Main::_InitED()
 void Main::_FreeED()
 {
 	cudaFree(gMapd);
-	#ifndef USE_OPENCV_GPU
 	cudaFree(blurd);
-	#endif
 	cudaFree(fMapd);
 	delete[] gMaph;
 	delete[] fMaph;
@@ -95,15 +91,8 @@ int Main::getTH()
 */
 void Main::PerProcED(cv::Mat &src)
 {
-	#ifndef USE_OPENCV_GPU
 	cv::cvtColor(src, grayImg, CV_RGB2GRAY);
 	cv::GaussianBlur(grayImg, blurImg, cv::Size(5, 5), 1, 0);
-	#endif
-	#ifdef USE_OPENCV_GPU
-	src_d.upload(src);
-	cv::cuda::cvtColor(src_d, grayImg, CV_RGB2GRAY);
-	cv::cuda::GaussianBlur(grayImg, blurImg, cv::Size(5, 5), 1, 0);
-	#endif
 }
 
 /*
@@ -126,13 +115,8 @@ cv::Mat Main::Process(cv::Mat& src, POINT *&edge_seg, int *&edge_seg_offset, int
 
 	PerProcED(src);
 
-	#ifndef USE_OPENCV_GPU
 	// 本次数据拷贝
 	HANDLE_ERROR(cudaMemcpy(blurd, blurImg.data, sizeof(uchar)*rows*cols, cudaMemcpyHostToDevice));
-	#endif
-	#ifdef USE_OPENCV_GPU
-	blurd = blurImg.data;
-	#endif
 
 	// 核函数启动
 	kernelC<<< dimGrid_ED, dimBlock_ED >>>(blurd, gMapd, fMapd, cols, rows, anchor_th, k);

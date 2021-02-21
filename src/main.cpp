@@ -5,18 +5,6 @@
 #include <math.h>
 #include <sstream>
 
-#define PI 3.14159265
-
-// TDEF(LOOP_TIME);
-
-#ifdef TIM_MAIN
-TDEF(EdgeDrawing);
-TDEF(SearchLines_cpu);
-TDEF(SearchLines_gpu);
-TDEF(EDToVector);
-// TDEF(deal);
-// TDEF(proc);
-#endif
 int main(int argc, char *args[])
 {
 	cv::Mat src, grayImg, eMap, result; 
@@ -28,29 +16,10 @@ int main(int argc, char *args[])
 	int point_sum_gpu = 0;
 	int point_sum_cpu = 0;
 
-	#ifndef VIDEO_MOD
 	// 图像加载
-	if(argc!=1) src = cv::imread(args[1]);
-	else src = cv::imread(DEFIMG);
-
-	cv::VideoCapture capture("img/2.mp4");
-	if(!capture.isOpened())
-	{
-		printf("[%s][%d]could not load video data...\n",__FUNCTION__,__LINE__);
-		return -1;
-	}
-	capture.read(src);
-
-	if (src.empty()) 
-	{
-		std::cout << "Can not load image!" << std::endl;
-		return 0;
-	}
-	#endif
-	#ifdef VIDEO_MOD
 	cv::VideoCapture capture;
 	if(argc!=1) capture.open(args[1]);
-	else capture.open(0);
+	else capture.open("img/2.mp4");
 	if(!capture.isOpened())
 	{
 		printf("[%s][%d]could not load video data...\n",__FUNCTION__,__LINE__);
@@ -58,252 +27,244 @@ int main(int argc, char *args[])
 	}
 	Main MainClass(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH));
 	std::cout << capture.get(CV_CAP_PROP_FRAME_HEIGHT) << " * " << capture.get(CV_CAP_PROP_FRAME_WIDTH) << std::endl;
-	double fps_time;
+	double fps_start;
+	double fps_ED;
+	double fps_DP;
+	double cpu_times = 0, gpu_timesA = 0, gpu_timesB = 0;
+	int loop_time = 0;
+	double fps_ED_sum = 0;
+	double fps_DP_sum = 0;
+	double fps_DP_max = 0, fps_DP_min = 99999;
+	double fps_ED_max = 0, fps_ED_min = 99999;
+	int fps_ED_max_seg = 0, fps_ED_min_seg = 99999;
+	int fps_DP_max_seg = 0, fps_DP_min_seg = 99999;
+	int seg_sum = 0;
 	while(capture.read(src))
 	{
-	// TSTART(LOOP_TIME);
-	fps_time = (double)cv::getTickCount();
-	#endif
-	#ifndef VIDEO_MOD
-	// 主类初始化
-	Main MainClass(src.rows, src.cols);
-	#endif
-	#ifdef TIM_MAIN
-	TSTART(EdgeDrawing);
-	#endif
-	// 边缘提取
-	eMap = MainClass.Process(src, edge_seg, edge_seg_offset, edge_seg_len);
-	// cv::imshow("eMap", eMap*255);
-	#ifdef TIM_MAIN
-	TEND(EdgeDrawing);
-	TPRINTMS(EdgeDrawing, "EdgeDrawing: ");
-	#endif
-	#ifndef VIDEO_MOD
-	std::cout << "Number of Edge Segment : " << edge_seg_len << std::endl;
-	std::cout << "Number of Line Point : " << edge_seg_offset[edge_seg_len-1] << std::endl;
-	int max = 0;
-	for(int i=0; i<edge_seg_len-1; i++)
-	{
-		int l = edge_seg_offset[i+1]-edge_seg_offset[i];
-		if(l > max) max = l;
-	}
-	std::cout << "Max len is : " << max << std::endl;
-	#endif
-	// gpu 的 DP算法
-	#ifdef TIM_MAIN
-	TSTART(SearchLines_gpu);
-	#endif
-	// point_sum_gpu = MainClass.runDP(flag);
-	#ifdef DP_GPU
-	MainClass.runDP(flag);
-	point_sum_gpu = 0;
-	for(int i=0; i<(edge_seg_len-1); i++)
-	{
-		VECTOR_H<POINT> oneline;
-		for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
-		{
-			if(flag[j])
-			{
-				oneline.push_back(edge_seg[j]);
-				point_sum_gpu++;
-			}
-		}
-		line_all_gpu.push_back(oneline);
-		VECTOR_H<POINT>().swap(oneline);
-	}
-	#endif
-	#ifdef TIM_MAIN
-	TEND(SearchLines_gpu);TPRINTMS(SearchLines_gpu, "SearchLines_GPU: ");
-	#endif
-	#ifndef VIDEO_MOD
-	std::cout << "line points_gpu is " << point_sum_gpu << std::endl;
-	#endif
-	#ifndef JUST_ED
-	// 将ED线段转为vector类型
-	#ifdef TIM_MAIN
-	TSTART(EDToVector);
-	#endif
-	#ifdef DP_CPU
-	VECTOR_H<VECTOR_H<POINT>> edge_seg_vec;
-	for(int i=0; i<(edge_seg_len-1); i++)
-	{
-		VECTOR_H<POINT> tmp;
-		for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
-		{
-			tmp.push_back(edge_seg[j]);
-		}
-		edge_seg_vec.push_back(tmp);
-		VECTOR_H<POINT>().swap(tmp);
-	}
-	#ifdef TIM_MAIN
-	TEND(EDToVector);TPRINTMS(EDToVector, "EDToVector: ");
-	#endif
-	// cpu 的 DP 算法
-	#ifdef TIM_MAIN
-	TSTART(SearchLines_cpu);
-	#endif
-	cpuDP(edge_seg_vec, line_all_cpu);
-	#ifdef TIM_MAIN
-	TEND(SearchLines_cpu);TPRINTMS(SearchLines_cpu, "SearchLines_CPU: ");
-	#endif
-	#endif
-	#ifndef VIDEO_MOD
-	// 统计点个数
-	point_sum_cpu = 0;
-	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator l=line_all_cpu.begin(); l != line_all_cpu.end(); l++)
-	{
-		point_sum_cpu += (*l).size();
-	}
-	std::cout << "line points_cpu is " << point_sum_cpu << std::endl;
-	#endif
-	// 绘制原图
-	// cv::cvtColor(src, grayImg, CV_RGB2GRAY);
-	// grayImg /= 2; 
-	// cv::cvtColor(grayImg, result, CV_GRAY2RGB);
-	src.copyTo(result);
-	cv::Mat imgED = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
-	cv::Mat imgDP_C = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
-	cv::Mat imgDP_G = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
-	// 绘制边缘
-	for(int i=0; i<(edge_seg_len-1); i++)
-	{
-		for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
-		{
-			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 0;
-			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 0;
-			result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 255;
+		++loop_time;
+		fps_start = (double)cv::getTickCount();
 
-			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 255;
-			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 255;
-			imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 0;
-		}
-	}
-	#ifdef DP_GPU
-	// 绘制GPU的DP后的直线
-	for(int i=0; i<line_all_gpu.size(); i++)
-	{
-		if(line_all_gpu[i].size()>1)
+		// 边缘提取
+		eMap = MainClass.Process(src, edge_seg, edge_seg_offset, edge_seg_len);
+		fps_ED = cv::getTickFrequency() / ((double)cv::getTickCount() - fps_start);
+		// std::cout << "Number of Edge Segment : " << edge_seg_len << std::endl;
+		// std::cout << "Number of Line Point : " << edge_seg_offset[edge_seg_len-1] << std::endl;
+		// int max = 0;
+		// for(int i=0; i<edge_seg_len-1; i++)
+		// {
+		// 	int l = edge_seg_offset[i+1]-edge_seg_offset[i];
+		// 	if(l > max) max = l;
+		// }
+		// std::cout << "Max len is : " << max << std::endl;
+
+		// gpu 的 DP算法
+		// double gpu_a = (double)cv::getTickCount();
+		MainClass.runDP(flag);
+		// double gpu_b = (double)cv::getTickCount();
+		// gpu_timesA += (gpu_b - gpu_a) / cv::getTickFrequency();
+		// gpu_a = (double)cv::getTickCount();
+		// point_sum_gpu = 0;
+		for(int i=0; i<(edge_seg_len-1); i++)
 		{
-			for(int idx=0; idx < (line_all_gpu[i].size()-1); idx++)
+			VECTOR_H<POINT> oneline;
+			for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
 			{
-				cv::line(result, line_all_gpu[i][idx], line_all_gpu[i][idx+1], cv::Scalar(0, 255, 0), 1, 4);
-				cv::line(imgDP_G, line_all_gpu[i][idx], line_all_gpu[i][idx+1], cv::Scalar(0, 255, 0), 1, 4);
-			}
-		}
-	}
-	#endif
-	#ifdef DP_CPU
-	// 绘制CPU的DP后的直线
-	for(VECTOR_H<VECTOR_H<POINT>>::const_iterator l=line_all_cpu.begin(); l != line_all_cpu.end(); l++)
-	{
-		for(int idx=0; idx < ((*l).size()-1); idx++)
-		{
-			cv::line(result, (*l)[idx], (*l)[idx+1], cv::Scalar(255, 0, 0), 1, 4);
-			cv::line(imgDP_C, (*l)[idx], (*l)[idx+1], cv::Scalar(255, 0, 0), 1, 4);
-		}
-	}
-	#endif
-	#ifdef USE_CHECK
-	// 检验GPU与CPU的DP结果是否相同
-	bool check_success = true;
-	if(line_all_cpu.size() == line_all_gpu.size())
-	{
-		for(int i=0; i< line_all_cpu.size(); i++)
-		{
-			if(line_all_cpu[i].size() == line_all_gpu[i].size())
-			{
-				for(int j=0; j<line_all_cpu[i].size(); j++)
+				if(flag[j])
 				{
-					if(line_all_cpu[i][j] != line_all_gpu[i][j])
-					{
-						check_success = false;
-						std::cout << "line_all_cpu[" << i << "][" << j << "] error" << std::endl;
-						break;
-					}
+					oneline.push_back(edge_seg[j]);
+					// point_sum_gpu++;
 				}
 			}
-			else
-			{
-				check_success = false;
-				std::cout << "line_all_cpu[" << i << "] error" << std::endl;
-				break;
-			}
-			
+			line_all_gpu.push_back(oneline);
+			VECTOR_H<POINT>().swap(oneline);
 		}
-	} 
-	else
-	{
-		check_success = false;
-		std::cout << "line_all num error" << std::endl;
+		// gpu_b = (double)cv::getTickCount();
+		// gpu_timesB += (gpu_b - gpu_a) / cv::getTickFrequency();
+		// std::cout << "line points_gpu is " << point_sum_gpu << std::endl;
+
+		// 将ED线段转为vector类型
+		// VECTOR_H<VECTOR_H<POINT>> edge_seg_vec;
+		// for(int i=0; i<(edge_seg_len-1); i++)
+		// {
+		// 	VECTOR_H<POINT> tmp;
+		// 	for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
+		// 	{
+		// 		tmp.push_back(edge_seg[j]);
+		// 	}
+		// 	edge_seg_vec.push_back(tmp);
+		// 	VECTOR_H<POINT>().swap(tmp);
+		// }
+
+		// cpu 的 DP 算法
+		// double cpu_a = (double)cv::getTickCount();
+		// cpuDP(edge_seg_vec, line_all_cpu);
+		// double cpu_b = (double)cv::getTickCount();
+		// cpu_times += (cpu_b - cpu_a) / cv::getTickFrequency();
+
+		// 统计点个数
+		// point_sum_cpu = 0;
+		// for(VECTOR_H<VECTOR_H<POINT>>::const_iterator l=line_all_cpu.begin(); l != line_all_cpu.end(); l++)
+		// {
+		// 	point_sum_cpu += (*l).size();
+		// }
+		// std::cout << "line points_cpu is " << point_sum_cpu << std::endl;
+
+		// 检验GPU与CPU的DP结果是否相同
+		// bool check_success = true;
+		// if(line_all_cpu.size() == line_all_gpu.size())
+		// {
+		// 	for(int i=0; i< line_all_cpu.size(); i++)
+		// 	{
+		// 		if(line_all_cpu[i].size() == line_all_gpu[i].size())
+		// 		{
+		// 			for(int j=0; j<line_all_cpu[i].size(); j++)
+		// 			{
+		// 				if(line_all_cpu[i][j] != line_all_gpu[i][j])
+		// 				{
+		// 					check_success = false;
+		// 					std::cout << "line_all_cpu[" << i << "][" << j << "] error" << std::endl;
+		// 					break;
+		// 				}
+		// 			}
+		// 		}
+		// 		else
+		// 		{
+		// 			check_success = false;
+		// 			std::cout << "line_all_cpu[" << i << "] error" << std::endl;
+		// 			break;
+		// 		}
+				
+		// 	}
+		// } 
+		// else
+		// {
+		// 	check_success = false;
+		// 	std::cout << "line_all num error" << std::endl;
+		// }
+		// if(!check_success) { std::cout << "check failed" << std::endl; exit(-1);}
+
+		// 绘制边缘
+		// #ifdef SHOW
+		src.copyTo(result);
+		cv::Mat imgED = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
+		// cv::Mat imgDP_C = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
+		cv::Mat imgDP_G = cv::Mat::zeros(capture.get(CV_CAP_PROP_FRAME_HEIGHT), capture.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC3);
+		for(int i=0; i<(edge_seg_len-1); i++)
+		{
+			for(int j=edge_seg_offset[i]; j<edge_seg_offset[i+1]; j++)
+			{
+				result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 0;
+				result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 0;
+				result.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 255;
+
+				imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[0] = 255;
+				imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[1] = 255;
+				imgED.at<cv::Vec3b>((cv::Point)(edge_seg[j]))[2] = 0;
+			}
+		}
+		// 绘制GPU的DP后的直线
+		for(int i=0; i<line_all_gpu.size(); i++)
+		{
+			if(line_all_gpu[i].size()>1)
+			{
+				for(int idx=0; idx < (line_all_gpu[i].size()-1); idx++)
+				{
+					cv::line(result, line_all_gpu[i][idx], line_all_gpu[i][idx+1], cv::Scalar(0, 255, 0), 1, 4);
+					cv::line(imgDP_G, line_all_gpu[i][idx], line_all_gpu[i][idx+1], cv::Scalar(0, 255, 0), 1, 4);
+				}
+			}
+		}
+		
+		// 绘制CPU的DP后的直线
+		// for(VECTOR_H<VECTOR_H<POINT>>::const_iterator l=line_all_cpu.begin(); l != line_all_cpu.end(); l++)
+		// {
+		// 	for(int idx=0; idx < ((*l).size()-1); idx++)
+		// 	{
+		// 		cv::line(result, (*l)[idx], (*l)[idx+1], cv::Scalar(255, 0, 0), 1, 4);
+		// 		cv::line(imgDP_C, (*l)[idx], (*l)[idx+1], cv::Scalar(255, 0, 0), 1, 4);
+		// 	}
+		// }
+		
+		fps_DP = cv::getTickFrequency() / ((double)cv::getTickCount() - fps_start);
+		fps_ED_sum += fps_ED;
+		fps_DP_sum += fps_DP;
+		seg_sum += edge_seg_len;
+		if(fps_ED > fps_ED_max) {fps_ED_max = fps_ED; fps_ED_max_seg = edge_seg_len;}
+		if(fps_ED < fps_ED_min) {fps_ED_min = fps_ED; fps_ED_min_seg = edge_seg_len;}
+		if(fps_DP > fps_DP_max) {fps_DP_max = fps_DP; fps_DP_max_seg = edge_seg_len;}
+		if(fps_DP < fps_DP_min) {fps_DP_min = fps_DP; fps_DP_min_seg = edge_seg_len;}
+		std::ostringstream buffer_ED;
+		buffer_ED << "FPS ED " << fps_ED;
+		std::ostringstream buffer_DP;
+		buffer_DP << "FPS DP " << fps_DP;
+		cv::putText(result,
+				buffer_ED.str(),
+				cv::Point(5,20),
+				cv::FONT_HERSHEY_SIMPLEX,
+				0.5,
+				cv::Scalar(255,0,255));
+		cv::putText(result,
+				buffer_DP.str(),
+				cv::Point(5,40),
+				cv::FONT_HERSHEY_SIMPLEX,
+				0.5,
+				cv::Scalar(255,0,255));
+		cv::imwrite("out.png", result);
+		// cv::namedWindow("org",CV_WINDOW_NORMAL);
+		// cv::namedWindow("gray",CV_WINDOW_NORMAL);
+		// cv::namedWindow("ED",CV_WINDOW_NORMAL);
+		// cv::namedWindow("DP_CPU",CV_WINDOW_NORMAL);
+		// cv::namedWindow("DP_GPU",CV_WINDOW_NORMAL);
+		cv::namedWindow("result",CV_WINDOW_NORMAL);
+		// cv::imshow("org", src);
+		// cv::imshow("gray", grayImg);
+		// cv::imshow("ED", imgED);
+		// cv::imshow("DP_CPU", imgDP_C);
+		// cv::imshow("DP_GPU", imgDP_G);
+		cv::imshow("result", result);
+		char key = cv::waitKey(1);
+
+		if (key==27)	// esc退出
+		{
+			break;
+		}
+		else if(key == 44)	// ',' 减小阈值
+		{
+			int th = MainClass.getTH()!=0?(MainClass.getTH()-1):0;
+			MainClass.setTH(th);
+			std::cout << "th change to " << th << std::endl;
+		}
+		else if(key == 46)	// '.' 增大阈值
+		{
+			int th = MainClass.getTH()+1;
+			MainClass.setTH(th);
+			std::cout << "th change to " << th << std::endl;
+		}
+		// #endif // SHOW
+		line_all_gpu.clear();
+		line_all_cpu.clear();
+		// VECTOR_H<VECTOR_H<POINT>>().swap(line_all_gpu);
+		// VECTOR_H<VECTOR_H<POINT>>().swap(line_all_cpu);
 	}
-	if(check_success) std::cout << "check success" << std::endl;
-	else std::cout << "check failed" << std::endl;
-	#endif
-	#ifdef VIDEO_MOD
-	fps_time = cv::getTickFrequency() / ((double)cv::getTickCount() - fps_time);
-	std::ostringstream buffer;
-	buffer << "FPS " << fps_time;
-	cv::putText(result,
-			buffer.str(),
-			cv::Point(5,20),
-			cv::FONT_HERSHEY_SIMPLEX,
-			0.5,
-			cv::Scalar(255,0,255));
-	#endif
-	#ifndef VIDEO_MOD
-	cv::imwrite("out.png", result);
-	#endif
-	#ifdef SHOW_IMG
-	// cv::namedWindow("org",CV_WINDOW_NORMAL);
-	// cv::namedWindow("gray",CV_WINDOW_NORMAL);
-	cv::namedWindow("ED",CV_WINDOW_NORMAL);
-	// cv::namedWindow("DP_CPU",CV_WINDOW_NORMAL);
-	cv::namedWindow("DP_GPU",CV_WINDOW_NORMAL);
-	// cv::namedWindow("result",CV_WINDOW_NORMAL);
-	// cv::imshow("org", src);
-	// cv::imshow("gray", grayImg);
-	cv::imshow("ED", imgED);
-	#ifdef DP_CPU
-	cv::imshow("DP_CPU", imgDP_C);
-	#endif
-	#ifdef DP_GPU
-	cv::imshow("DP_GPU", imgDP_G);
-	#endif
-	cv::imshow("result", result);
-	#ifndef VIDEO_MOD
-	cv::waitKey();
-	#endif
-	#endif
-	#endif	//JUST_ED
-	// imgED.release();
-	// imgDP_C.release();
-	// imgDP_G.release();
-	#ifdef DP_GPU
-	VECTOR_H<VECTOR_H<POINT>>().swap(line_all_gpu);
-	#endif
-	#ifdef DP_CPU
-	VECTOR_H<VECTOR_H<POINT>>().swap(line_all_cpu);
-	#endif
-	#ifdef VIDEO_MOD
-	// TEND(LOOP_TIME);TPRINTMS(LOOP_TIME, "LOOP_TIME: ");
-	char key = cv::waitKey(1);
-	if (key==27)	// esc退出
-	{
-		break;
-	}
-	else if(key == 44)	// ',' 减小阈值
-	{
-		int th = MainClass.getTH()!=0?(MainClass.getTH()-1):0;
-		MainClass.setTH(th);
-		std::cout << "th change to " << th << std::endl;
-	}
-	else if(key == 46)	// '.' 增大阈值
-	{
-		int th = MainClass.getTH()+1;
-		MainClass.setTH(th);
-		std::cout << "th change to " << th << std::endl;
-	}
-	}
-	#endif
+
+	std::cout << "loop time: " << loop_time << "\n" <<
+				// "cpu_times:" << cpu_times << "\n" <<
+				// "gpu_timesA:" << gpu_timesA << "\n" <<
+				// "gpu_timesB:" << gpu_timesB << "\n" <<
+				"seg_avg:" << seg_sum / loop_time << "\n" <<
+				" ===== " << "\n"
+				"[ED]fps avg:" << fps_ED_sum / loop_time << "\n" <<
+				"[ED]fps max:" << fps_ED_max << "\n" <<
+				"[ED]when_seg:" << fps_ED_max_seg << "\n" <<
+				"[ED]fps_min:" << fps_ED_min << "\n" <<
+				"[ED]when_seg:" << fps_ED_min_seg << "\n" <<
+				" ===== " << "\n"
+				"[DP]fps avg:" << fps_DP_sum / loop_time << "\n" <<
+				"[DP]fps max:" << fps_DP_max << "\n" <<
+				"[DP]when seg:" << fps_DP_max_seg << "\n" <<
+				"[DP]fps min:" << fps_DP_min << "\n" <<
+				"[DP]when seg:" << fps_DP_min_seg << "\n" <<
+				std::endl;
+	
 	return 0;
 }
