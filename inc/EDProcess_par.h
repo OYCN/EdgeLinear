@@ -11,6 +11,8 @@
 #include "thrust/device_vector.h"
 #include "thrust/host_vector.h"
 
+#define sharedMemPerBlock 49152
+
 // 类型定义
 #define VECTOR_H std::vector
 // #define VECTOR_H thrust::host_vector

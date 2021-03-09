@@ -18,6 +18,7 @@ Main::Main(int _rows, int _cols, int _anchor_th, int _k)
 	HANDLE_ERROR(cudaGetDeviceCount(&count));
 	if(count!=1) {printf( "zero or multiple gpu\n"); exit( EXIT_FAILURE );}
 	cudaSetDevice(0);
+	// cudaFree(0);
 
 	// dimGridOld_FULL = dim3(rows, cols);
 	_InitED();

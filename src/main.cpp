@@ -247,7 +247,8 @@ int main(int argc, char *args[])
 		// VECTOR_H<VECTOR_H<POINT>>().swap(line_all_cpu);
 	}
 
-	std::cout << "loop time: " << loop_time << "\n" <<
+	std::cout << "shard mem stack size " << sharedMemPerBlock / sizeof(POINT) / 16 << "\n" <<
+				"loop time: " << loop_time << "\n" <<
 				// "cpu_times:" << cpu_times << "\n" <<
 				// "gpu_timesA:" << gpu_timesA << "\n" <<
 				// "gpu_timesB:" << gpu_timesB << "\n" <<
