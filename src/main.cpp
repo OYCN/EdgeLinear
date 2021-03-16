@@ -210,17 +210,17 @@ int main(int argc, char *args[])
 				0.5,
 				cv::Scalar(255,0,255));
 		cv::imwrite("out.png", result);
-		// cv::namedWindow("org",CV_WINDOW_NORMAL);
+		cv::namedWindow("org",CV_WINDOW_NORMAL);
 		// cv::namedWindow("gray",CV_WINDOW_NORMAL);
-		// cv::namedWindow("ED",CV_WINDOW_NORMAL);
+		cv::namedWindow("ED",CV_WINDOW_NORMAL);
 		// cv::namedWindow("DP_CPU",CV_WINDOW_NORMAL);
-		// cv::namedWindow("DP_GPU",CV_WINDOW_NORMAL);
+		cv::namedWindow("DP_GPU",CV_WINDOW_NORMAL);
 		cv::namedWindow("result",CV_WINDOW_NORMAL);
-		// cv::imshow("org", src);
+		cv::imshow("org", src);
 		// cv::imshow("gray", grayImg);
-		// cv::imshow("ED", imgED);
+		cv::imshow("ED", imgED);
 		// cv::imshow("DP_CPU", imgDP_C);
-		// cv::imshow("DP_GPU", imgDP_G);
+		cv::imshow("DP_GPU", imgDP_G);
 		cv::imshow("result", result);
 		char key = cv::waitKey(1);
 
@@ -239,6 +239,10 @@ int main(int argc, char *args[])
 			int th = MainClass.getTH()+1;
 			MainClass.setTH(th);
 			std::cout << "th change to " << th << std::endl;
+		}
+		else if(key == ' ')
+		{
+			while(cv::waitKey(1) != ' ');
 		}
 		// #endif // SHOW
 		line_all_gpu.clear();
