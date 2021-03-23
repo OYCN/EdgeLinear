@@ -8,11 +8,12 @@ class EdgeDrawing
 public:
     EdgeDrawing(int _rows=0, int _cols=0, int _anchor_th=6, int _k=2);
     ~EdgeDrawing();
-    EDoutput* run(cv::Mat &_src);
+    _EDoutput* run(cv::Mat &_src);
 
 private:
     void initLoop();
-    cv::Mat smartConnecting();
+    void Kernel();
+    void smartConnecting();
     void goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx);
 
 public:
@@ -41,13 +42,13 @@ private:
     // GPU Block 划分
     dim3 dimBlock;
     // GPU Grid 划分
-    dim3 dimGrid_ED;
+    dim3 dimGrid;
     // 锚点链接时临时变量
     POINT *edge_smart;
     // 边缘结果
     struct _EDoutput EDoutput;
 
-}
+};
 
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
 

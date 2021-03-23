@@ -9,7 +9,7 @@ INC = -I$(INCDIR) -I$(CUDA)
 
 .PHONY : all clean
 
-all: bin/run run
+all: bin/EDmain
 
 # ED Part:
 
@@ -19,7 +19,7 @@ tmp/EdgeDrawing.o: src/EdgeDrawing.cpp $(INC_FILE)
 tmp/smartConnecting.o: src/smartConnecting.cpp $(INC_FILE)
 	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
-tmp/EDkernel.o: src/EDkernel.cpp $(INC_FILE)
+tmp/EDkernel.o: src/EDkernel.cu $(INC_FILE)
 	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
 tmp/EDmain.o: src/EDmain.cpp $(INC_FILE)

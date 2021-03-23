@@ -32,9 +32,10 @@
 #define IDX(x, y) [(y) + ((x)*cols)]
 
 // connecting 
-EdgeDrawing::smartConnecting()
+void EdgeDrawing::smartConnecting()
 {
 	int &h = rows, &w = cols;
+	int edge_smart_idx;
 	uchar mydir = 0;
 	EDoutput.edge_offset_len = 1;
 	EDoutput.edge_offset[0] = 0;
@@ -74,7 +75,7 @@ EdgeDrawing::smartConnecting()
 			EDoutput.edge_offset_len++;
 		}
 	}
-	return eMaph;
+	
 }
 
 void EdgeDrawing::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)

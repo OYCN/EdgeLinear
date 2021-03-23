@@ -3,6 +3,15 @@
 #define LIDX(x, y) [(x) + (y)*lcols]
 #define GIDX(x, y) [(x) + (y)*gcols]
 
+void EdgeDrawing::Kernel()
+{
+    HANDLE_ERROR(cudaMemcpy(srcd, srch.data, sizeof(uchar)*rows*cols, cudaMemcpyHostToDevice));
+    kernelC<<< dimGrid, dimBlock >>>(srcd, gMapd, fMapd, cols, rows, th, k);
+    // HANDLE_ERROR(cudaDeviceSynchronize());
+    HANDLE_ERROR(cudaMemcpy(gMaph, gMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
+	HANDLE_ERROR(cudaMemcpy(fMaph, fMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
+}
+
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int grows, int ANCHOR_TH, int K)
 {
     int gx = blockIdx.x*28 + threadIdx.x;

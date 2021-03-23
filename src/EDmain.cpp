@@ -26,12 +26,14 @@ main(int argc, char *args[])
     while(capture.read(src))
 	{
         EDoutput = ED.run(src);
-        cv::Mat eMap(rows ,cols, cv::CV_8UC1, (unsigned char*)EDoutput.eMap);
+        cv::Mat eMap(rows ,cols, CV_8UC1, (unsigned char*)(EDoutput->eMap));
         cv::imshow("src", src);
-        cv::imshow("ED out", eMap);
+        cv::imshow("ED out", eMap * 255);
+        char key = cv::waitKey(1);
         if (key==27)	// esc退出
 		{
 			break;
 		}
     }
+    cv::waitKey(0);
 }
