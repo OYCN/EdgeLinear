@@ -1,13 +1,14 @@
 #ifndef _INC_DOUGLASpEUCKER_H
 #define _INC_DOUGLASpEUCKER_H
 
-#include "Linear.h"
+#include "common.h"
 
 class DouglasPeucker
 {
 public:
     DouglasPeucker(int _rows, int _cols, float _th);
     ~DouglasPeucker();
+    bool* run(EDoutput input);
 
 private:
     void initLoop();
@@ -19,6 +20,12 @@ public:
 private:
     int rows;
     int cols;
+    POINT *edge_set_d;
+    int *edge_offset_d;
+    bool *flags_h;
+    bool *flags_d;
+    POINT *stack_d;
+    POINT *stack_h;
     // GPU Block 划分
     dim3 dimBlock;
     // GPU Grid 划分

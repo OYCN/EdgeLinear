@@ -2,19 +2,25 @@
 
 #define sharedMemPerBlock 49152
 
-void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon);
+__global__ void kernelDP(POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon);
 
 DouglasPeucker::DouglasPeucker(int _rows, int _cols, float _th)
     :rows(_rows), cols(_cols), th(_th)
 {
+    HANDLE_ERROR(cudaMalloc(&edge_set_d, sizeof(POINT)*rows*cols));
+	HANDLE_ERROR(cudaMalloc(&edge_offset_d, sizeof(int)*(rows*cols+1)));
+	HANDLE_ERROR(cudaMalloc(&flags_d, sizeof(bool)*rows*cols));
+	HANDLE_ERROR(cudaMalloc(&stack_d, sizeof(POINT)*rows*cols));
     flagh = new bool[rows*cols];
-    stack_h = new POINT[rows*cols];
 }
 
 DouglasPeucker::~DouglasPeucker()
 {
+    cudaFree(edge_set_d);
+	cudaFree(edge_offset_d);
+	cudaFree(flags_d);
+	cudaFree(stack_d);
 	delete[] flagh;
-    delete[] stack_h;
 }
 
 bool* DouglasPeucker::run(EDoutput input)
@@ -22,18 +28,21 @@ bool* DouglasPeucker::run(EDoutput input)
     const dim3 dimBlock_DP(16,1);
     const dim3 dimGrid_DP(cols*rows / 16, 1);
 
-    memset(flagh, false, sizeof(bool)*rows*cols);
+    HANDLE_ERROR(cudaMemcpy(edge_set_d, input.edge_set, sizeof(POINT)*(input.edge_offset)[(input.edge_offset_len)-1], cudaMemcpyHostToDevice));
+	HANDLE_ERROR(cudaMemcpy(edge_offset_d, input.edge_offset, sizeof(int)*(input.edge_offset_len), cudaMemcpyHostToDevice));
+	HANDLE_ERROR(cudaMemset(flags_d, false, sizeof(bool)*rows*cols));
 
-	for(int i = 0; i < edge_offset_len; i++) {
-		testDP(i, edge_set, edge_offset, edge_offset_len, stack_h, flags_h, 5);
-	}
+    kernelDP<<<dimGrid_DP,dimBlock_DP>>>(edge_set_d, edge_offset_d, edge_offset_len, stack_d, flags_d, 5);
+	// HANDLE_ERROR(cudaDeviceSynchronize());
+	HANDLE_ERROR(cudaMemcpy(flagh, flags_d, sizeof(bool)*rows*cols, cudaMemcpyDeviceToHost));
 
     return flagh;
 }
 
-void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon)
+__global__ void kernelDP(POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon)
 {
-	if(index>=edge_offset_len) return;
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	if(index>=(edge_offset_len-1)) return;
 	float dmax = 0;
 	float d;
 	float da, db, dc, norm;
@@ -43,26 +52,20 @@ void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_le
 	int end = edge_offset_d[index+1];
 	bool *flags = flags_d + start;
 	POINT *edge = edge_set_d + start;
-	POINT stack_s[sharedMemPerBlock / sizeof(POINT)];
-	POINT* stack_s_start = stack_s + sharedMemPerBlock / sizeof(POINT) / 16 * (index % 16);
-	POINT* stack_s_end = stack_s + sharedMemPerBlock / sizeof(POINT) / 16 * (index % 16 + 1);
+	__shared__ POINT stack_s[sharedMemPerBlock / sizeof(POINT)];
+	POINT* stack_s_start = stack_s + sharedMemPerBlock / sizeof(POINT) / blockDim.x * threadIdx.x;
+	POINT* stack_s_end = stack_s + sharedMemPerBlock / sizeof(POINT) / blockDim.x * (threadIdx.x + 1);
 	POINT *stack_base = stack_d + start;
 	POINT *stack_top = stack_s_start;
-	std::cout << "start_s\t" << stack_s_start << std::endl;
-	std::cout << "end_s\t" << stack_s_end << std::endl;
-	std::cout << "start_m\t" << stack_base << std::endl;
-	std::cout << "push\t" << stack_top << std::endl;
+
 	(*stack_top).x = 0;
 	(*stack_top).y = end - start - 1;
 	if(stack_top == (stack_s_end - 1)) stack_top = stack_base;
 	else stack_top++;
-	std::cout << "then\t" << stack_top << std::endl;
 	while (stack_top != stack_s_start)
 	{
-		std::cout << "pop\t" << stack_top << std::endl;
 		if(stack_top == stack_base) stack_top = stack_s_end - 1;
 		else stack_top--;
-		std::cout << "then\t" << stack_top << std::endl;
 		wp = *(stack_top);
 		dmax = 0;
 		da = edge[wp.y].y - edge[wp.x].y;
@@ -80,18 +83,14 @@ void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_le
 		}
 		if (dmax >= epsilon)
 		{
-			std::cout << "push1\t" << stack_top << std::endl;
 			(*stack_top).x = wp.x;
 			(*stack_top).y = C;
 			if(stack_top == (stack_s_end - 1)) stack_top = stack_base;
 			else stack_top++;
-			std::cout << "then\t" << stack_top << std::endl;
-			std::cout << "push2\t" << stack_top << std::endl;
 			(*stack_top).x = C;
 			(*stack_top).y = wp.y;
 			if(stack_top == (stack_s_end - 1)) stack_top = stack_base;
 			else stack_top++;
-			std::cout << "then\t" << stack_top << std::endl;
 		}
 		else
 		{
