@@ -21,7 +21,7 @@ main(int argc, char *args[])
     int rows = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
     int cols = capture.get(CV_CAP_PROP_FRAME_WIDTH);
 
-    EdgeDrawing ED(rows, cols);
+    EdgeDrawing ED(rows, cols, 6, 2);
     std::cout << rows << " * " << cols << std::endl;
     while(capture.read(src))
 	{

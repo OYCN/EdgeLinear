@@ -6,13 +6,12 @@
 class EdgeDrawing 
 {
 public:
-    EdgeDrawing(int _rows=0, int _cols=0, int _anchor_th=6, int _k=2);
+    EdgeDrawing(int _rows, int _cols, float _anchor_th, int _k);
     ~EdgeDrawing();
     _EDoutput* run(cv::Mat &_src);
 
 private:
     void initLoop();
-    void Kernel();
     void smartConnecting();
     void goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx);
 
@@ -20,7 +19,7 @@ public:
     // 稀疏度
     int k;
     // 阈值
-    int th;
+    float th;
 
 private:
     // 行
@@ -39,17 +38,11 @@ private:
     uchar* eMaph;
     // 用于预处理的临时变量
     cv::Mat srch;
-    // GPU Block 划分
-    dim3 dimBlock;
-    // GPU Grid 划分
-    dim3 dimGrid;
     // 锚点链接时临时变量
     POINT *edge_smart;
     // 边缘结果
     struct _EDoutput EDoutput;
 
 };
-
-__global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
 
 #endif // _INC_EDGEDRAWING_H

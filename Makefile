@@ -13,23 +13,27 @@ all: bin/EDmain
 
 # ED Part:
 
-tmp/EdgeDrawing.o: src/EdgeDrawing.cpp $(INC_FILE)
+tmp/EdgeDrawing_cpu.o: src/EdgeDrawing.cpp $(INC_FILE)
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
+
+tmp/EdgeDrawing_gpu.o: src/EdgeDrawing.cu $(INC_FILE)
 	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
 tmp/smartConnecting.o: src/smartConnecting.cpp $(INC_FILE)
-	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
-
-tmp/EDkernel.o: src/EDkernel.cu $(INC_FILE)
-	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
 tmp/EDmain.o: src/EDmain.cpp $(INC_FILE)
-	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
-bin/EDmain: tmp/EdgeDrawing.o\
+bin/EDmain-gpu: tmp/EdgeDrawing_gpu.o\
 		 tmp/smartConnecting.o\
-		 tmp/EDkernel.o\
 		 tmp/EDmain.o
-	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+	g++ -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+
+bin/EDmain-cpu: tmp/EdgeDrawing_cpu.o\
+		 tmp/smartConnecting.o\
+		 tmp/EDmain.o
+	g++ -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
 clean:
 	rm -f $(wildcard ./tmp/*.o) $(wildcard ./bin/*)

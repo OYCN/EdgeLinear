@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/inc",
-                "/usr/local/cuda-11.2/include"
+                "/usr/include"
+                // "/usr/local/cuda-11.2/include"
             ],
             "defines": [
                 "LINUX",

@@ -1,19 +1,16 @@
 #include "EdgeDrawing.h"
 
-EdgeDrawing::EdgeDrawing(int _rows, int _cols, int _th, int _k)
+#define IDX(x, y) [(x) + (y)*cols]
+
+void kernelC(uchar *src, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K)
+
+EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
 {
     th = _th;
     k = _k;
     rows = _rows;
     cols = _cols;
 
-    dimBlock = dim3(32,32);
-	dimGrid = dim3((cols+27)/28, (rows+27)/28);
-	HANDLE_ERROR(cudaMalloc(&gMapd, sizeof(uchar)*rows*cols));
-	HANDLE_ERROR(cudaMalloc(&srcd, sizeof(uchar)*rows*cols));
-	HANDLE_ERROR(cudaMalloc(&fMapd, sizeof(uchar)*rows*cols));
-	HANDLE_ERROR(cudaMemset(gMapd, 0, sizeof(uchar)*rows*cols));
-	HANDLE_ERROR(cudaMemset(fMapd, 0, sizeof(uchar)*rows*cols));
 	gMaph = new uchar[rows*cols];
 	fMaph = new uchar[rows*cols];
 	eMaph = new uchar[rows*cols];
@@ -25,9 +22,6 @@ EdgeDrawing::EdgeDrawing(int _rows, int _cols, int _th, int _k)
 
 EdgeDrawing::~EdgeDrawing()
 {
-    cudaFree(gMapd);
-	cudaFree(srcd);
-	cudaFree(fMapd);
 	delete[] gMaph;
 	delete[] fMaph;
     delete[] eMaph;
@@ -47,8 +41,68 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
     
     cv::cvtColor(_src, srch, CV_RGB2GRAY);
 	cv::GaussianBlur(srch, srch, cv::Size(5, 5), 1, 0);
-	Kernel();
+    kernelC(srch, gMaph, fMaph, cols, rows, th, k);
     smartConnecting();
 
 	return &EDoutput;
+}
+
+void kernelC(uchar *src, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K)
+{
+    int dx = 0;
+    int dy = 0;
+    float val = 0;
+
+    // 求梯度
+    for(int y = 1; y < (rows - 1); y++)
+    for(int x = 1; x < (cols - 1); x++)
+    {
+        dx = src IDX(x+1,y-1)
+            + 2 * src IDX(x+1,y);
+            + src IDX(x+1,y+1);
+            - src IDX(x-1,y-1);
+            - 2 * src IDX(x-1,y);
+            - src IDX(x-1,y+1);
+        dx = abs(dx);
+
+        dy = src IDX(x-1,y-1);
+            + 2 * src IDX(x,y-1);
+            + src IDX(x+1,y-1);
+            - src IDX(x-1,y+1);
+            - 2 * src IDX(x,y+1);
+            - src IDX(x+1,y+1);
+        dy = abs(dy);
+
+        val = 0.5f*dx + 0.5f*dy;
+        if (val > 255) val = 255.0f;
+        gMap IDX(x, y) = val;
+    }
+
+    // 求flag
+    for(int y = 1; y < (rows - 1); y++)
+    for(int x = 1; x < (cols - 1); x++)
+    {
+        if(dx > dy)
+        {
+            fMap IDX(x, y) = 0x80;
+            if((gMap IDX(x, y) - gMap IDX(x-1, y)) >= ANCHOR_TH
+                && (gMap IDX(x, y) - gMap IDX(x+1, y)) >= ANCHOR_TH
+                && ((x-1) % K) == 0 && ((y-1) % K) == 0)
+            {
+                fMap IDX(x, y) |= 0x40;
+            }
+        }
+        else
+        {
+            fMap IDX(x, y) = 0;
+            fMap IDX(x, y) = 0x80;
+            if((gMap IDX(x, y) - gMap IDX(x, y-1)) >= ANCHOR_TH
+                && (gMap IDX(x, y) - gMap IDX(x, y+1)) >= ANCHOR_TH
+                && ((x-1) % K) == 0 && ((y-1) % K) == 0)
+            {
+                fMap IDX(x, y) |= 0x40;
+            }
+        }
+    }
+
 }
