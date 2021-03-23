@@ -11,30 +11,24 @@ INC = -I$(INCDIR) -I$(CUDA)
 
 all: bin/run run
 
-tmp/EDProcess_base.o: src/EDProcess_base.cu $(INC_FILE)
-	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+# ED Part:
 
-tmp/getAll.o: src/getAll.cu $(INC_FILE)
-	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
-
-tmp/main.o: src/main.cpp $(INC_FILE)
-	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
-
-tmp/toLine.o: src/toLine.cu $(INC_FILE)
-	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+tmp/EdgeDrawing.o: src/EdgeDrawing.cpp $(INC_FILE)
+	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
 tmp/smartConnecting.o: src/smartConnecting.cpp $(INC_FILE)
-	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
+	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
-tmp/normalDP.o: src/normalDP.cpp $(INC_FILE)
-	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g -fopenmp
+tmp/EDkernel.o: src/EDkernel.cpp $(INC_FILE)
+	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
-bin/run: tmp/EDProcess_base.o\
-		 tmp/getAll.o\
-		 tmp/main.o\
-		 tmp/toLine.o\
+tmp/EDmain.o: src/EDmain.cpp $(INC_FILE)
+	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
+
+bin/EDmain: tmp/EdgeDrawing.o\
 		 tmp/smartConnecting.o\
-		 tmp/normalDP.o
+		 tmp/EDkernel.o\
+		 tmp/EDmain.o
 	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3 -g
 
 clean:

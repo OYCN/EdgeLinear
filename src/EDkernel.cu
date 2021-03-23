@@ -1,4 +1,4 @@
-#include "EDProcess_par.h"
+#include "EdgeDrawing.h"
 
 #define LIDX(x, y) [(x) + (y)*lcols]
 #define GIDX(x, y) [(x) + (y)*gcols]

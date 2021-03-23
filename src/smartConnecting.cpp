@@ -1,4 +1,4 @@
-#include "EDProcess_par.h"
+#include "EdgeDrawing.h"
 
 
 // 方案1 用于GPU计算结果
@@ -32,23 +32,23 @@
 #define IDX(x, y) [(y) + ((x)*cols)]
 
 // connecting 
-cv::Mat Main::smartConnecting()
+EdgeDrawing::smartConnecting()
 {
 	int &h = rows, &w = cols;
 	uchar mydir = 0;
-	edge_offset_len = 1;
-	edge_offset[0] = 0;
+	EDoutput.edge_offset_len = 1;
+	EDoutput.edge_offset[0] = 0;
 
 	for (int j = 1; j < h - 1; j++)
 	{
 		for (int i = 1; i < w - 1; i++)
 		{
 			// 从每个未检测的 anchor point 出发
-			if (!((fMaph IDX(j,i)>>6)&0x01) || eMaph.data IDX(j,i))
+			if (!((fMaph IDX(j,i)>>6)&0x01) || eMaph IDX(j,i))
 			{
 				continue;
 			}
-			edge_offset[edge_offset_len] = edge_offset[edge_offset_len-1];
+			EDoutput.edge_offset[EDoutput.edge_offset_len] = EDoutput.edge_offset[EDoutput.edge_offset_len-1];
 			//if(debug==0) {printf("a:%d e:%d\n", aMap IDX(0,0), eMap.data IDX(0,0));debug++;}
 			
 			edge_smart_idx = 0;
@@ -63,30 +63,26 @@ cv::Mat Main::smartConnecting()
 			{
 				for(int i=0; i<edge_smart_idx; i++)
 				{
-					edge_set[edge_offset[edge_offset_len-1]+i] = edge_smart[edge_smart_idx-i-1];
-					edge_offset[edge_offset_len]++;
+					EDoutput.edge_set[EDoutput.edge_offset[EDoutput.edge_offset_len-1]+i] = edge_smart[edge_smart_idx-i-1];
+					EDoutput.edge_offset[EDoutput.edge_offset_len]++;
 				}
 			}
 
 			// 判断走向  horizonal - right  vertical - down
 			mydir = ((fMaph IDX(j,i)>>7)&0x01) ? DD : DR;
-			goMove(i, j, mydir, edge_set, edge_offset[edge_offset_len]);
-			edge_offset_len++;
+			goMove(i, j, mydir, EDoutput.edge_set, EDoutput.edge_offset[EDoutput.edge_offset_len]);
+			EDoutput.edge_offset_len++;
 		}
 	}
 	return eMaph;
 }
 
-// not changed: x,y,gMap,dMap
-// changed and read: eMap
-// in/out: 
-
-void Main::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)
+void EdgeDrawing::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)
 {
 	int h = rows, w = cols, s = cols;
-	eMaph.data[y*s + x] = 0; // for the second scan
+	eMaph[y*s + x] = 0; // for the second scan
 
-	while (x>0 && x <w - 1 && y>0 && y<h - 1 && !eMaph.data[y*s + x] && gMaph[y*s + x])
+	while (x>0 && x <w - 1 && y>0 && y<h - 1 && !eMaph[y*s + x] && gMaph[y*s + x])
 	{
 		if((!((fMaph[y*s + x]>>7)&0x01) && (mydir==DU || mydir==DD))
 			|| (((fMaph[y*s + x]>>7)&0x01) && (mydir==DL || mydir==DR)))
@@ -94,7 +90,7 @@ void Main::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)
 			break;
 		}
 
-		eMaph.data[y*s + x] = 1;
+		eMaph[y*s + x] = 1;
 
 		if (!((fMaph[y*s + x]>>7)&0x01))      // horizonal scanning
 		{
@@ -104,12 +100,12 @@ void Main::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)
 				uchar left = gMaph[y*s + x - 1];
 				uchar left_up = gMaph[(y - 1)*s + (x - 1)];
 				uchar left_down = gMaph[(y + 1)*s + (x - 1)];
-				uchar eLeftCounter = eMaph.data[y*s + x - 1] + eMaph.data[(y - 1)*s + (x - 1)] + eMaph.data[(y + 1)*s + (x - 1)];
+				uchar eLeftCounter = eMaph[y*s + x - 1] + eMaph[(y - 1)*s + (x - 1)] + eMaph[(y + 1)*s + (x - 1)];
 
 				// 处理不是单像素链点 
 				if (eLeftCounter>=2)
 				{
-					eMaph.data[y*s + x] = 0;
+					eMaph[y*s + x] = 0;
 					break;
 				}
 				else if (eLeftCounter==1)
@@ -146,11 +142,11 @@ void Main::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)
 				uchar right = gMaph[y*s + x + 1];
 				uchar right_up = gMaph[(y - 1)*s + (x + 1)];
 				uchar right_down = gMaph[(y + 1)*s + (x + 1)];
-				uchar eRightCounter = eMaph.data[y*s + x + 1] + eMaph.data[(y - 1)*s + (x + 1)] + eMaph.data[(y + 1)*s + (x + 1)];
+				uchar eRightCounter = eMaph[y*s + x + 1] + eMaph[(y - 1)*s + (x + 1)] + eMaph[(y + 1)*s + (x + 1)];
 
 				if (eRightCounter>=2)
 				{
-					eMaph.data[y*s + x] = 0;
+					eMaph[y*s + x] = 0;
 					break;
 				}
 				else if (eRightCounter==1)
@@ -194,11 +190,11 @@ void Main::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)
 				uchar up = gMaph[(y - 1)*s + x];
 				uchar up_left = gMaph[(y - 1)*s + (x - 1)];
 				uchar up_right = gMaph[(y - 1)*s + (x + 1)];
-				uchar eUpCounter = eMaph.data[(y - 1)*s + x] + eMaph.data[(y - 1)*s + (x - 1)] + eMaph.data[(y - 1)*s + (x + 1)];
+				uchar eUpCounter = eMaph[(y - 1)*s + x] + eMaph[(y - 1)*s + (x - 1)] + eMaph[(y - 1)*s + (x + 1)];
 
 				if (eUpCounter>=2)
 				{
-					eMaph.data[y*s + x] = 0;
+					eMaph[y*s + x] = 0;
 					break;
 				}
 				else if (eUpCounter==1)
@@ -235,11 +231,11 @@ void Main::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)
 				uchar down = gMaph[(y + 1)*s + x];
 				uchar down_left = gMaph[(y + 1)*s + (x - 1)];
 				uchar down_right = gMaph[(y + 1)*s + (x + 1)];
-				uchar eDownCounter = eMaph.data[(y + 1)*s + x] + eMaph.data[(y + 1)*s + (x - 1)] + eMaph.data[(y + 1)*s + (x + 1)];
+				uchar eDownCounter = eMaph[(y + 1)*s + x] + eMaph[(y + 1)*s + (x - 1)] + eMaph[(y + 1)*s + (x + 1)];
 
 				if (eDownCounter>=2)
 				{
-					eMaph.data[y*s + x] = 0;
+					eMaph[y*s + x] = 0;
 					break;
 				}
 				else if (eDownCounter==1)
