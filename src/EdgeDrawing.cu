@@ -60,6 +60,8 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
     // HANDLE_ERROR(cudaDeviceSynchronize());
     HANDLE_ERROR(cudaMemcpy(gMaph, gMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
 	HANDLE_ERROR(cudaMemcpy(fMaph, fMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
+    // cv::Mat fMap(rows ,cols, CV_8UC1, (unsigned char*)(fMaph));
+	// cv::imshow("fMap", fMap);
     smartConnecting();
 
 	return &EDoutput;
