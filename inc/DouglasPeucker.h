@@ -8,7 +8,7 @@ class DouglasPeucker
 public:
     DouglasPeucker(int _rows, int _cols, float _th);
     ~DouglasPeucker();
-    bool* run(EDoutput input);
+    bool* run(_EDoutput input);
 
 private:
     void initLoop();
@@ -30,8 +30,6 @@ private:
     dim3 dimBlock;
     // GPU Grid 划分
     dim3 dimGrid;
-    // 关键点标志
-    uchar* flagh;
-}
+};
 
 #endif // _INC_DOUGLASpEUCKER_H

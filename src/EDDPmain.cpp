@@ -1,4 +1,5 @@
 #include "EdgeDrawing.h"
+#include "DouglasPeucker.h"
 
 main(int argc, char *args[])
 {
@@ -29,22 +30,22 @@ main(int argc, char *args[])
 	{
         EDoutput = ED.run(src);
         cv::Mat eMap(rows ,cols, CV_8UC1, (unsigned char*)(EDoutput->eMap));
-        flag = DP.run(EDoutput);
+        flag = DP.run(*EDoutput);
 
         // 绘制直线
         cv::Mat DPMap = cv::Mat::zeros(rows, cols, CV_8UC3);
-        for(int i = 0; i < (EDoutput.edge_offset_len - 1); i++)
+        for(int i = 0; i < (EDoutput->edge_offset_len - 1); i++)
 		{
-			VECTOR_H<POINT> oneline;
             int old_idx = -1;
-			for(int j = EDoutput.edge_offset[i]; j < EDoutput.edge_offset[i+1]; j++)
+			for(int j = EDoutput->edge_offset[i]; j < EDoutput->edge_offset[i+1]; j++)
 			{
 				if(flag[j])
 				{
-                    if(old_idx != 0)
-                        old_idx = j;
-                    else
-                        cv::line(DPMap, EDoutput.edge_set[old_idx], EDoutput.edge_set[j], cv::Scalar(0, 255, 0), 1, 4);
+                    if(old_idx > 0)
+                    {
+                        cv::line(DPMap, EDoutput->edge_set[old_idx], EDoutput->edge_set[j], cv::Scalar(0, 255, 0), 1, 4);
+                    }
+                    old_idx = j;
 					
 				}
 			}

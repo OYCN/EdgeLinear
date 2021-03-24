@@ -7,33 +7,32 @@ void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_le
 DouglasPeucker::DouglasPeucker(int _rows, int _cols, float _th)
     :rows(_rows), cols(_cols), th(_th)
 {
-    flagh = new bool[rows*cols];
+    flags_h = new bool[rows*cols];
     stack_h = new POINT[rows*cols];
 }
 
 DouglasPeucker::~DouglasPeucker()
 {
-	delete[] flagh;
+	delete[] flags_h;
     delete[] stack_h;
 }
 
-bool* DouglasPeucker::run(EDoutput input)
+bool* DouglasPeucker::run(_EDoutput input)
 {
     const dim3 dimBlock_DP(16,1);
     const dim3 dimGrid_DP(cols*rows / 16, 1);
 
-    memset(flagh, false, sizeof(bool)*rows*cols);
+    memset(flags_h, false, sizeof(bool)*rows*cols);
 
-	for(int i = 0; i < edge_offset_len; i++) {
-		testDP(i, edge_set, edge_offset, edge_offset_len, stack_h, flags_h, 5);
+	for(int i = 0; i < (input.edge_offset_len - 1); i++) {
+		testDP(i, input.edge_set, input.edge_offset, input.edge_offset_len, stack_h, flags_h, 5);
 	}
 
-    return flagh;
+    return flags_h;
 }
 
 void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon)
 {
-	if(index>=edge_offset_len) return;
 	float dmax = 0;
 	float d;
 	float da, db, dc, norm;
@@ -43,26 +42,13 @@ void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_le
 	int end = edge_offset_d[index+1];
 	bool *flags = flags_d + start;
 	POINT *edge = edge_set_d + start;
-	POINT stack_s[sharedMemPerBlock / sizeof(POINT)];
-	POINT* stack_s_start = stack_s + sharedMemPerBlock / sizeof(POINT) / 16 * (index % 16);
-	POINT* stack_s_end = stack_s + sharedMemPerBlock / sizeof(POINT) / 16 * (index % 16 + 1);
-	POINT *stack_base = stack_d + start;
-	POINT *stack_top = stack_s_start;
-	std::cout << "start_s\t" << stack_s_start << std::endl;
-	std::cout << "end_s\t" << stack_s_end << std::endl;
-	std::cout << "start_m\t" << stack_base << std::endl;
-	std::cout << "push\t" << stack_top << std::endl;
+	POINT *stack_top = stack_d;
 	(*stack_top).x = 0;
 	(*stack_top).y = end - start - 1;
-	if(stack_top == (stack_s_end - 1)) stack_top = stack_base;
-	else stack_top++;
-	std::cout << "then\t" << stack_top << std::endl;
-	while (stack_top != stack_s_start)
+	stack_top++;
+	while (stack_top != stack_d)
 	{
-		std::cout << "pop\t" << stack_top << std::endl;
-		if(stack_top == stack_base) stack_top = stack_s_end - 1;
-		else stack_top--;
-		std::cout << "then\t" << stack_top << std::endl;
+		stack_top--;
 		wp = *(stack_top);
 		dmax = 0;
 		da = edge[wp.y].y - edge[wp.x].y;
@@ -80,18 +66,12 @@ void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_le
 		}
 		if (dmax >= epsilon)
 		{
-			std::cout << "push1\t" << stack_top << std::endl;
 			(*stack_top).x = wp.x;
 			(*stack_top).y = C;
-			if(stack_top == (stack_s_end - 1)) stack_top = stack_base;
-			else stack_top++;
-			std::cout << "then\t" << stack_top << std::endl;
-			std::cout << "push2\t" << stack_top << std::endl;
+			stack_top++;
 			(*stack_top).x = C;
 			(*stack_top).y = wp.y;
-			if(stack_top == (stack_s_end - 1)) stack_top = stack_base;
-			else stack_top++;
-			std::cout << "then\t" << stack_top << std::endl;
+			stack_top++;
 		}
 		else
 		{

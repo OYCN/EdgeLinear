@@ -29,7 +29,7 @@ tmp/DouglasPeucker_cpu.o: src/DouglasPeucker.cpp $(INC_FILE)
 	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
 tmp/DouglasPeucker_gpu.o: src/DouglasPeucker.cu $(INC_FILE)
-	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
+	nvcc -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
 
 tmp/EDDPmain.o: src/EDDPmain.cpp $(INC_FILE)
 	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -O3
