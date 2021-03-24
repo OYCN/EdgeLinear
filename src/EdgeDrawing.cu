@@ -6,12 +6,8 @@
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
 
 EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
+    :rows(_rows), cols(_cols), th(_th), k(_k)
 {
-    th = _th;
-    k = _k;
-    rows = _rows;
-    cols = _cols;
-
 	HANDLE_ERROR(cudaMalloc(&gMapd, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&srcd, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&fMapd, sizeof(uchar)*rows*cols));

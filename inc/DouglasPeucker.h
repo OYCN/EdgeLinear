@@ -12,7 +12,6 @@ public:
 
 private:
     void initLoop();
-    void Kernel() { };
 
 public:
     float th;
@@ -26,10 +25,6 @@ private:
     bool *flags_d;
     POINT *stack_d;
     POINT *stack_h;
-    // GPU Block 划分
-    dim3 dimBlock;
-    // GPU Grid 划分
-    dim3 dimGrid;
 };
 
 #endif // _INC_DOUGLASpEUCKER_H

@@ -5,12 +5,8 @@
 void kernelC(uchar *src, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
 
 EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
+    :rows(_rows), cols(_cols), th(_th), k(_k)
 {
-    th = _th;
-    k = _k;
-    rows = _rows;
-    cols = _cols;
-
 	gMaph = new uchar[rows*cols];
 	fMaph = new uchar[rows*cols];
 	eMaph = new uchar[rows*cols];

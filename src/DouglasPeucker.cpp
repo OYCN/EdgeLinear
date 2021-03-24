@@ -17,15 +17,20 @@ DouglasPeucker::~DouglasPeucker()
     delete[] stack_h;
 }
 
+DouglasPeucker::initLoop()
+{
+	memset(flags_h, false, sizeof(bool)*rows*cols);
+}
+
 bool* DouglasPeucker::run(_EDoutput input)
 {
     const dim3 dimBlock_DP(16,1);
     const dim3 dimGrid_DP(cols*rows / 16, 1);
 
-    memset(flags_h, false, sizeof(bool)*rows*cols);
+    initLoop();
 
 	for(int i = 0; i < (input.edge_offset_len - 1); i++) {
-		testDP(i, input.edge_set, input.edge_offset, input.edge_offset_len, stack_h, flags_h, 5);
+		testDP(i, input.edge_set, input.edge_offset, input.edge_offset_len, stack_h, flags_h, th);
 	}
 
     return flags_h;

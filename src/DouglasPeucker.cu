@@ -23,16 +23,21 @@ DouglasPeucker::~DouglasPeucker()
 	delete[] flags_h;
 }
 
-bool* DouglasPeucker::run(_EDoutput input)
+DouglasPeucker::initLoop()
 {
-    const dim3 dimBlock_DP(16,1);
-    const dim3 dimGrid_DP(cols*rows / 16, 1);
-
-    HANDLE_ERROR(cudaMemcpy(edge_set_d, input.edge_set, sizeof(POINT)*(input.edge_offset)[(input.edge_offset_len)-1], cudaMemcpyHostToDevice));
+	HANDLE_ERROR(cudaMemcpy(edge_set_d, input.edge_set, sizeof(POINT)*(input.edge_offset)[(input.edge_offset_len)-1], cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemcpy(edge_offset_d, input.edge_offset, sizeof(int)*(input.edge_offset_len), cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemset(flags_d, false, sizeof(bool)*rows*cols));
+}
 
-    kernelDP<<<dimGrid_DP,dimBlock_DP>>>(edge_set_d, edge_offset_d, input.edge_offset_len, stack_d, flags_d, 5);
+bool* DouglasPeucker::run(_EDoutput input)
+{
+    const dim3 dimBlock(16,1);
+    const dim3 dimGrid(cols*rows / 16, 1);
+
+	initLoop();
+
+    kernelDP<<<dimGrid,dimBlock>>>(edge_set_d, edge_offset_d, input.edge_offset_len, stack_d, flags_d, th);
 	// HANDLE_ERROR(cudaDeviceSynchronize());
 	HANDLE_ERROR(cudaMemcpy(flags_h, flags_d, sizeof(bool)*rows*cols, cudaMemcpyDeviceToHost));
 
