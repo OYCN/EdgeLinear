@@ -31,7 +31,7 @@ main(int argc, char *args[])
         EDoutput = ED.run(src);
         cv::Mat eMap(rows ,cols, CV_8UC1, (unsigned char*)(EDoutput->eMap));
         flag = LS.run(*EDoutput);
-
+        
         // 绘制直线
         cv::Mat LSMap = cv::Mat::zeros(rows, cols, CV_8UC3);
         for(int i = 0; i < (EDoutput->edge_offset_len - 1); i++)

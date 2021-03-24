@@ -17,7 +17,7 @@ DouglasPeucker::~DouglasPeucker()
     delete[] stack_h;
 }
 
-DouglasPeucker::initLoop()
+void DouglasPeucker::initLoop()
 {
 	memset(flags_h, false, sizeof(bool)*rows*cols);
 }

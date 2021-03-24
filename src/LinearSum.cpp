@@ -11,15 +11,15 @@ LinearSum::~LinearSum()
     delete[] flags_h;
 }
 
-LinearSum::initLoop()
+void LinearSum::initLoop()
 {
     memset(flags_h, false, sizeof(bool)*rows*cols);
 }
 
-LinearSum::run(_EDoutput input)
+bool* LinearSum::run(_EDoutput input)
 {
-    int now_len = 0;
-    int now_dis = 0;
+    float now_len = 0;
+    float now_dis = 0;
     // A 为上一直线化的点，或起始点
     // B 为当前遍历的点
     // T 为上一个点
@@ -37,8 +37,8 @@ LinearSum::run(_EDoutput input)
         {
             B = input.edge_set[j];
             T = input.edge_set[j-1];
-            int dx = T.x - B.x;
-            int dy = T.y - B.y;
+            float dx = T.x - B.x;
+            float dy = T.y - B.y;
             now_len += sqrt(dx * dx + dy * dy);
             dx = A.x - B.x;
             dy = A.y - B.y;
@@ -55,4 +55,5 @@ LinearSum::run(_EDoutput input)
         // 结束点为最佳点
         flags_h[input.edge_offset[i + 1] - 1] = true;
 	}
+    return flags_h;
 }

@@ -23,7 +23,7 @@ DouglasPeucker::~DouglasPeucker()
 	delete[] flags_h;
 }
 
-DouglasPeucker::initLoop()
+void DouglasPeucker::initLoop()
 {
 	HANDLE_ERROR(cudaMemcpy(edge_set_d, input.edge_set, sizeof(POINT)*(input.edge_offset)[(input.edge_offset_len)-1], cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemcpy(edge_offset_d, input.edge_offset, sizeof(int)*(input.edge_offset_len), cudaMemcpyHostToDevice));

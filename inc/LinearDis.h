@@ -20,6 +20,6 @@ private:
     int rows;
     int cols;
     bool *flags_h;
-}
+};
 
 #endif // _INC_LINEARDIS_H
