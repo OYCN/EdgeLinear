@@ -14,9 +14,7 @@ all: bin/EDmain-gpu\
 	bin/EDmain-cpu\
 	bin/EDDPmain-gpu\
 	bin/EDDPmain-cpu\
-	bin/EDLSmain-gpu\
 	bin/EDLSmain-cpu\
-	bin/EDLDmain-gpu\
 	bin/EDLDmain-cpu
 
 
@@ -57,19 +55,28 @@ tmp/LinearDis_gpu.o: src/LinearDis.cu $(INC_FILE)
 
 # COMMON Part
 
-tmp/main.o: src/main.cpp $(INC_FILE)
+tmp/EDmain.o: src/main.cpp $(INC_FILE)
 	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+
+tmp/EDDPmain.o: src/main.cpp $(INC_FILE)
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -D_DP
+
+tmp/EDLSmain.o: src/main.cpp $(INC_FILE)
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -D_LS
+
+tmp/EDLDmain.o: src/main.cpp $(INC_FILE)
+	g++ -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -D_LD
 
 # ED bin Part
 
 bin/EDmain-gpu: tmp/EdgeDrawing_gpu.o\
 		 tmp/smartConnecting.o\
-		 tmp/main.o
+		 tmp/EDmain.o
 	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDmain-cpu: tmp/EdgeDrawing_cpu.o\
 		 tmp/smartConnecting.o\
-		 tmp/main.o
+		 tmp/EDmain.o
 	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 # ED & DP bin Part
@@ -77,42 +84,42 @@ bin/EDmain-cpu: tmp/EdgeDrawing_cpu.o\
 bin/EDDPmain-gpu: tmp/EdgeDrawing_gpu.o\
 		 tmp/smartConnecting.o\
 		 tmp/DouglasPeucker_gpu.o\
-		 tmp/main.o
-	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -DDP
+		 tmp/EDDPmain.o
+	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDDPmain-cpu: tmp/EdgeDrawing_cpu.o\
 		 tmp/smartConnecting.o\
 		 tmp/DouglasPeucker_cpu.o\
-		 tmp/main.o
-	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -DDP
+		 tmp/EDDPmain.o
+	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 # ED & LS bin Part
 
 bin/EDLSmain-gpu: tmp/EdgeDrawing_gpu.o\
 		 tmp/smartConnecting.o\
 		 tmp/LinearSum_gpu.o\
-		 tmp/main.o
-	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -DLS
+		 tmp/EDLSmain.o
+	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDLSmain-cpu: tmp/EdgeDrawing_cpu.o\
 		 tmp/smartConnecting.o\
 		 tmp/LinearSum_cpu.o\
-		 tmp/main.o
-	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -DLS
+		 tmp/EDLSmain.o
+	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 # ED & LD bin Part
 
 bin/EDLDmain-gpu: tmp/EdgeDrawing_gpu.o\
 		 tmp/smartConnecting.o\
 		 tmp/LinearDis_gpu.o\
-		 tmp/main.o
-	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -DLD
+		 tmp/EDLDmain.o
+	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDLDmain-cpu: tmp/EdgeDrawing_cpu.o\
 		 tmp/smartConnecting.o\
 		 tmp/LinearDis_cpu.o\
-		 tmp/main.o
-	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -DLD
+		 tmp/EDLDmain.o
+	nvcc -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 # utils Part
 

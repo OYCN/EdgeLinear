@@ -11,7 +11,7 @@ public:
     bool* run(_EDoutput input);
 
 private:
-    void initLoop();
+    void initLoop(_EDoutput input);
 
 public:
     float th;

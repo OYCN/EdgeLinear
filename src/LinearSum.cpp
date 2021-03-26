@@ -11,7 +11,7 @@ LinearSum::~LinearSum()
     delete[] flags_h;
 }
 
-void LinearSum::initLoop()
+void LinearSum::initLoop(_EDoutput input)
 {
     memset(flags_h, false, sizeof(bool)*rows*cols);
 }
@@ -25,7 +25,7 @@ bool* LinearSum::run(_EDoutput input)
     // T 为上一个点
     POINT A, B, T;
 
-    initLoop();
+    initLoop(input);
 
     for(int i = 0; i < (input.edge_offset_len - 1); i++)
     {

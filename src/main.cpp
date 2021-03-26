@@ -1,15 +1,15 @@
 #include "EdgeDrawing.h"
-#ifdef DP
+#ifdef _DP
 #include "DouglasPeucker.h"
-#define LINEAR DouglasPeucker
-#elif defined LS
+#define _LINEAR DouglasPeucker
+#elif defined _LS
 #include "LinearSum.h"
-#define LINEAR LinearSum
-#elif defined LD
+#define _LINEAR LinearSum
+#elif defined _LD
 #include "LinearDis.h"
-#define LINEAR LinearDis
+#define _LINEAR LinearDis
 #else
-#define NLINEAR
+#define _NLINEAR
 #endif
 
 main(int argc, char *args[])
@@ -35,15 +35,15 @@ main(int argc, char *args[])
     int cols = capture.get(CV_CAP_PROP_FRAME_WIDTH);
 
     EdgeDrawing ED(rows, cols, 6, 2);
-    #ifndef NLINEAR
-    LINEAR Linear(rows, cols, 5);
-    #endif  // NLINEAR
+    #ifndef _NLINEAR
+    _LINEAR Linear(rows, cols, 5);
+    #endif  // _NLINEAR
     std::cout << rows << " * " << cols << std::endl;
     while(capture.read(src))
 	{
         EDoutput = ED.run(src);
         cv::Mat eMap(rows ,cols, CV_8UC1, (unsigned char*)(EDoutput->eMap));
-        #ifndef NLINEAR
+        #ifndef _NLINEAR
         flag = Linear.run(*EDoutput);
         // 绘制直线
         cv::Mat outMap = cv::Mat::zeros(rows, cols, CV_8UC3);
@@ -63,13 +63,13 @@ main(int argc, char *args[])
 				}
 			}
 		}
-        #endif  // NLINEAR
+        #endif  // _NLINEAR
 
         cv::imshow("src", src);
         cv::imshow("ED out", eMap * 255);
-        #ifndef NLINEAR
+        #ifndef _NLINEAR
         cv::imshow("Linear out", outMap);
-        #endif // NLINEAR
+        #endif // _NLINEAR
         char key = cv::waitKey(1);
         if (key==27)	// esc退出
 		{

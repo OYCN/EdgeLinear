@@ -11,7 +11,7 @@ LinearDis::~LinearDis()
     delete[] flags_h;
 }
 
-void LinearDis::initLoop()
+void LinearDis::initLoop(_EDoutput input)
 {
     memset(flags_h, false, sizeof(bool)*rows*cols);
 }
@@ -25,7 +25,7 @@ bool* LinearDis::run(_EDoutput input)
     // M 临时变量点
     POINT A, B, M;
 
-    initLoop();
+    initLoop(input);
 
     for(int i = 0; i < (input.edge_offset_len - 1); i++)
     {
