@@ -1,7 +1,5 @@
 #include "DouglasPeucker.h"
 
-#define sharedMemPerBlock 49152
-
 void testDP(int index, POINT *edge_set_d, int *edge_offset_d, int edge_offset_len, POINT *stack_d, bool *flags_d, float epsilon);
 
 DouglasPeucker::DouglasPeucker(int _rows, int _cols, float _th)

@@ -4,12 +4,13 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/inc",
-                "/usr/include"
-                // "/usr/local/cuda-11.2/include"
+                "/usr/include",
+                "/usr/local/cuda/include"
             ],
             "defines": [
                 "LINUX",
-                "TIMING"
+                "TIMING",
+                "_DP"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
