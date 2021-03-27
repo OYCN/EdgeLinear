@@ -50,7 +50,7 @@ main(int argc, char *args[])
         #ifndef _NLINEAR
         flag = Linear.run(*EDoutput);
         #endif  // _NLINEAR
-        fps = ((double)cv::getTickCount() - fps)/cv::getTickFrequency();
+        fps = cv::getTickFrequency()/((double)cv::getTickCount() - fps);
         if(fps > fps_max) fps_max = fps;
         if(fps < fps_min) fps_min = fps;
         fps_sum += fps;
@@ -76,13 +76,18 @@ main(int argc, char *args[])
 		}
         #endif  // _NLINEAR
 
-        cv::imshow("src", src);
-        cv::imshow("ED out", eMap * 255);
-        #ifndef _NLINEAR
-        cv::imshow("Linear out", outMap);
-        #endif // _NLINEAR
         // std::string str = "FPS:" + std::to_string(fps);
-        cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2);
+        cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
+
+        cv::namedWindow("Src", CV_WINDOW_NORMAL);
+        cv::imshow("Src", src);
+        cv::namedWindow("Edge", CV_WINDOW_NORMAL);
+        cv::imshow("Edge", eMap * 255);
+        #ifndef _NLINEAR
+        cv::namedWindow("Linear", CV_WINDOW_NORMAL);
+        cv::imshow("Linear", outMap);
+        #endif // _NLINEAR
+
         char key = cv::waitKey(1);
         if (key==27)	// esc退出
 		{
