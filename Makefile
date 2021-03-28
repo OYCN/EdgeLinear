@@ -29,6 +29,13 @@ tmp:
 bin:
 	if [ ! -e bin ];then mkdir bin; fi
 	
+clean:
+	rm -rf bin
+	rm -rf tmp
+
+# utils Part
+tmp/Config.o: src/Config.cpp $(INC_FILE) dir
+	$(CXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 # ED Part:
 
@@ -82,6 +89,7 @@ tmp/EDLDmain.o: src/main.cpp $(INC_FILE) dir
 # ED bin Part
 
 bin/EDmain-gpu: \
+		tmp/Config.o\
 		tmp/EdgeDrawing_gpu.o\
 		tmp/smartConnecting.o\
 		tmp/EDmain.o\
@@ -89,6 +97,7 @@ bin/EDmain-gpu: \
 	$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDmain-cpu: \
+		tmp/Config.o\
 		tmp/EdgeDrawing_cpu.o\
 		tmp/smartConnecting.o\
 		tmp/EDmain.o
@@ -97,6 +106,7 @@ bin/EDmain-cpu: \
 # ED & DP bin Part
 
 bin/EDDPmain-gpu: \
+		tmp/Config.o\
 		tmp/EdgeDrawing_gpu.o\
 		tmp/smartConnecting.o\
 		tmp/DouglasPeucker_gpu.o\
@@ -104,6 +114,7 @@ bin/EDDPmain-gpu: \
 	$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDDPmain-cpu: \
+		tmp/Config.o\
 		tmp/EdgeDrawing_cpu.o\
 		tmp/smartConnecting.o\
 		tmp/DouglasPeucker_cpu.o\
@@ -113,6 +124,7 @@ bin/EDDPmain-cpu: \
 # ED & LS bin Part
 
 bin/EDLSmain-gpu: \
+		tmp/Config.o\
 		tmp/EdgeDrawing_gpu.o\
 		tmp/smartConnecting.o\
 		tmp/LinearSum_gpu.o\
@@ -120,6 +132,7 @@ bin/EDLSmain-gpu: \
 	$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDLSmain-cpu: \
+		tmp/Config.o\
 		tmp/EdgeDrawing_cpu.o\
 		tmp/smartConnecting.o\
 		tmp/LinearSum_cpu.o\
@@ -129,6 +142,7 @@ bin/EDLSmain-cpu: \
 # ED & LD bin Part
 
 bin/EDLDmain-gpu: \
+		tmp/Config.o\
 		tmp/EdgeDrawing_gpu.o\
 		tmp/smartConnecting.o\
 		tmp/LinearDis_gpu.o\
@@ -136,15 +150,10 @@ bin/EDLDmain-gpu: \
 	$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDLDmain-cpu: \
+		tmp/Config.o\
 		tmp/EdgeDrawing_cpu.o\
 		tmp/smartConnecting.o\
 		tmp/LinearDis_cpu.o\
 		tmp/EDLDmain.o
 	$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
-
-# utils Part
-
-clean:
-	rm -rf bin
-	rm -rf tmp
 

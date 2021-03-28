@@ -5,7 +5,10 @@
 #include <iostream>
 #include "cuda.h"
 #include "cuda_runtime.h"
-#include "configure.h"
+
+#define VECTOR_H std::vector
+#define POINT mygpu::Point
+
 #include "myStruct.h"
 
 #define ERROR(x) {printf( "%s in %s at line %d\n", (x), __FILE__, __LINE__ );exit( EXIT_FAILURE );}

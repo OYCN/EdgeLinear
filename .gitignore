@@ -1,5 +1,6 @@
 out.png
 bin/*
+!bin/configure
 img
 .vs
 tmp/*

@@ -1,4 +1,7 @@
 #include <string>
+#include <fstream>
+
+#include "Config.h"
 #include "EdgeDrawing.h"
 #ifdef _DP
 #include "DouglasPeucker.h"
@@ -21,12 +24,53 @@ main(int argc, char *args[])
     double fps, fps_max = 0, fps_min = 999, fps_sum = 0;
     int fps_num = 0;
 
+    // 配置初始化
+    std::string cwd(args[0]);
+    {
+    size_t a = cwd.find_last_of('/');
+    cwd = cwd.substr(0, a+1);
+    }
+    cwd += "configure";
+    std::ifstream f(cwd);
+    if(!f.good())
+    {
+        std::ofstream of(cwd);
+        of.close();
+    }
+    // else
+    f.close();
+    Config cfg(cwd);
+    // cv::VideoCaptureAPIs
+    int ApiPreference = cfg.Read("ApiPreference", (int)cv::CAP_GSTREAMER);
+    int Width = cfg.Read("Width", 1920);
+    int Height = cfg.Read("Height", 1080);
+    int Fps = cfg.Read("Fps", 120);
+    // if(!cfg.KeyExists("ApiPreference"))
+    cfg.Add("ApiPreference", ApiPreference);
+    // if(!cfg.KeyExists("Width"))
+    cfg.Add("Width", Width);
+    // if(!cfg.KeyExists("Height"))
+    cfg.Add("Height", Height);
+    // if(!cfg.KeyExists("Fps"))
+    cfg.Add("Fps", Fps);
+    std::ofstream of(cwd);
+    of << cfg;
+    of.close();
+    // exit(0);
+
     cv::VideoCapture capture;
 
     if(argc!=1)
+    {
         capture.open(args[1]);
+    }
 	else
-        capture.open(0);
+    {
+        capture.open(0, ApiPreference);
+        capture.set(CV_CAP_PROP_FRAME_WIDTH, Width);
+        capture.set(CV_CAP_PROP_FRAME_HEIGHT, Height);
+        capture.set(CV_CAP_PROP_FPS, Fps);
+    }
 
 	if(!capture.isOpened())
 	{
