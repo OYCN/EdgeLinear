@@ -40,13 +40,6 @@ main(int argc, char *args[])
     // else
     f.close();
     Config cfg(cwd);
-    // cv::VideoCaptureAPIs
-    int ApiPreference = cfg.Read("ApiPreference", (int)cv::CAP_GSTREAMER);
-    int Width = cfg.Read("Width", 1920);
-    int Height = cfg.Read("Height", 1080);
-    int Fps = cfg.Read("Fps", 120);
-    
-    // exit(0);
 
     cv::VideoCapture capture;
 
@@ -59,17 +52,13 @@ main(int argc, char *args[])
         if(cfg.KeyExists("Dev"))
         {
             std::cout << "Using Dev:" << cfg.Read("Dev", 0) << std::endl;
-            capture.open(cfg.Read("Dev", 0), ApiPreference);
+            capture.open(cfg.Read("Dev", 0), cfg.Read("ApiPreference", (int)cv::CAP_V4L2));
         }
         else if(cfg.KeyExists("Pip"))
         {
             std::cout << "Using Pip:\n\t" << cfg.Read("Pip", std::string()) << std::endl;
-            capture.open(cfg.Read("Pip", std::string()), ApiPreference);
+            capture.open(cfg.Read("Pip", std::string()), cfg.Read("ApiPreference", (int)cv::CAP_GSTREAMER));
         }
-        
-        capture.set(CV_CAP_PROP_FRAME_WIDTH, Width);
-        capture.set(CV_CAP_PROP_FRAME_HEIGHT, Height);
-        capture.set(CV_CAP_PROP_FPS, Fps);
     }
 
 	if(!capture.isOpened())

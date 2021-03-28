@@ -5,9 +5,3 @@ Pip = nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)1280, height=(int)
 # CAP_V4L2 => 200
 # CAP_GSTREAMER => 1800
 ApiPreference = 1800
-
-Fps = 120
-
-Height = 720
-
-Width = 1280
