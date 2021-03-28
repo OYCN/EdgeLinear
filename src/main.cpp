@@ -46,16 +46,16 @@ main(int argc, char *args[])
     int Height = cfg.Read("Height", 1080);
     int Fps = cfg.Read("Fps", 120);
     // if(!cfg.KeyExists("ApiPreference"))
-    cfg.Add("ApiPreference", ApiPreference);
+    // cfg.Add("ApiPreference", ApiPreference);
     // if(!cfg.KeyExists("Width"))
-    cfg.Add("Width", Width);
+    // cfg.Add("Width", Width);
     // if(!cfg.KeyExists("Height"))
-    cfg.Add("Height", Height);
+    // cfg.Add("Height", Height);
     // if(!cfg.KeyExists("Fps"))
-    cfg.Add("Fps", Fps);
-    std::ofstream of(cwd);
-    of << cfg;
-    of.close();
+    // cfg.Add("Fps", Fps);
+    // std::ofstream of(cwd);
+    // of << cfg;
+    // of.close();
     // exit(0);
 
     cv::VideoCapture capture;

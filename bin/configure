@@ -1,4 +1,10 @@
+# cv::VideoCaptureAPIs
+# CAP_V4L2 => 200
+# CAP_GSTREAMER => 1800
 ApiPreference = 1800
+
 Fps = 120
+
 Height = 1080
+
 Width = 1920
