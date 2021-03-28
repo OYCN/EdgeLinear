@@ -30,7 +30,7 @@ bin:
 	if [ ! -e bin ];then mkdir bin; fi
 	
 clean:
-	rm -rf bin
+	rm -rf ED*
 	rm -rf tmp
 
 # utils Part
