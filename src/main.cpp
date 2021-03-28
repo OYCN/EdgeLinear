@@ -45,17 +45,7 @@ main(int argc, char *args[])
     int Width = cfg.Read("Width", 1920);
     int Height = cfg.Read("Height", 1080);
     int Fps = cfg.Read("Fps", 120);
-    // if(!cfg.KeyExists("ApiPreference"))
-    // cfg.Add("ApiPreference", ApiPreference);
-    // if(!cfg.KeyExists("Width"))
-    // cfg.Add("Width", Width);
-    // if(!cfg.KeyExists("Height"))
-    // cfg.Add("Height", Height);
-    // if(!cfg.KeyExists("Fps"))
-    // cfg.Add("Fps", Fps);
-    // std::ofstream of(cwd);
-    // of << cfg;
-    // of.close();
+    
     // exit(0);
 
     cv::VideoCapture capture;
@@ -66,7 +56,17 @@ main(int argc, char *args[])
     }
 	else
     {
-        capture.open(0, ApiPreference);
+        if(cfg.KeyExists("Dev"))
+        {
+            std::cout << "Using Dev:" << cfg.Read("Dev", 0) << std::endl;
+            capture.open(cfg.Read("Dev", 0), ApiPreference);
+        }
+        else if(cfg.KeyExists("Pip"))
+        {
+            std::cout << "Using Pip:\n\t" << cfg.Read("Pip", std::string()) << std::endl;
+            capture.open(cfg.Read("Pip", std::string()), ApiPreference);
+        }
+        
         capture.set(CV_CAP_PROP_FRAME_WIDTH, Width);
         capture.set(CV_CAP_PROP_FRAME_HEIGHT, Height);
         capture.set(CV_CAP_PROP_FPS, Fps);

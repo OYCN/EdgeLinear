@@ -1,3 +1,6 @@
+Pip = nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)1280, height=(int)720, format=(string)NV12, framerate=(fraction)120/1 ! nvvidconv flip-method=0 ! video/x-raw, width=(int)1960, height=(int)1080, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink
+# Dev = 0
+
 # cv::VideoCaptureAPIs
 # CAP_V4L2 => 200
 # CAP_GSTREAMER => 1800
@@ -5,6 +8,6 @@ ApiPreference = 1800
 
 Fps = 120
 
-Height = 1080
+Height = 720
 
-Width = 1920
+Width = 1280
