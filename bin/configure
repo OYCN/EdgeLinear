@@ -6,9 +6,9 @@ Pip = nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)1280, height=(int)
 # CAP_GSTREAMER => 1800
 ApiPreference = 1800
 
-Display = false
+Display = true
 
-WriteFile = true
+WriteFile = false
 SrcFileName = tout_src.jpg
 EdgeFileName = tout_edge.jpg
 LinearFileName = tout_linear.jpg
