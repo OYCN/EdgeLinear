@@ -108,28 +108,39 @@ main(int argc, char *args[])
 			}
 		}
         #endif  // _NLINEAR
+        if(cfg.Read("Display", true))
+        {
+            // std::string str = "FPS:" + std::to_string(fps);
+            cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
+            
+            cv::namedWindow("Src", CV_WINDOW_NORMAL);
+            cv::imshow("Src", src);
+            cv::namedWindow("Edge", CV_WINDOW_NORMAL);
+            cv::imshow("Edge", eMap * 255);
+            #ifndef _NLINEAR
+            cv::namedWindow("Linear", CV_WINDOW_NORMAL);
+            cv::imshow("Linear", outMap);
+            #endif // _NLINEAR
 
-        // std::string str = "FPS:" + std::to_string(fps);
-        cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
-        
-        cv::namedWindow("Src", CV_WINDOW_NORMAL);
-        cv::imshow("Src", src);
-        cv::namedWindow("Edge", CV_WINDOW_NORMAL);
-        cv::imshow("Edge", eMap * 255);
-        #ifndef _NLINEAR
-        cv::namedWindow("Linear", CV_WINDOW_NORMAL);
-        cv::imshow("Linear", outMap);
-        #endif // _NLINEAR
-
-        char key = cv::waitKey(1);
-        if (key==27)	// esc退出
-		{
-			break;
-		}
+            char key = cv::waitKey(1);
+            if (key==27)	// esc退出
+            {
+                break;
+            }
+        }
+        if(cfg.Read("WriteFile", false))
+        {
+            cv::imwrite(cfg.Read("SrcFileName", std::string("out_src.jpg")), src);
+            cv::imwrite(cfg.Read("EdgeFileName", std::string("out_edge.jpg")), eMap * 255);
+            #ifndef _NLINEAR
+            cv::imwrite(cfg.Read("LinearFileName", std::string("out_linear.jpg")), outMap);
+            #endif // _NLINEAR
+        }
     }
     std::cout << "fps avg: " << fps_sum / fps_num << std::endl;
     std::cout << "fps max: " << fps_max << std::endl;
     std::cout << "fps min: " << fps_min << std::endl;
     std::cout << "time avg: " << fps_num / fps_sum << std::endl;
-    cv::waitKey(0);
+    if(cfg.Read("Display", true))
+        cv::waitKey(0);
 }

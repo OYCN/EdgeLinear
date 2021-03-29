@@ -4,3 +4,4 @@ bin/*
 img
 .vs
 tmp/*
+*.jpg

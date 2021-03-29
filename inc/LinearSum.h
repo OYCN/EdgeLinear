@@ -19,7 +19,10 @@ public:
 private:
     int rows;
     int cols;
+    bool *flags_d;
     bool *flags_h;
+    POINT *edge_set_d;
+    int *edge_offset_d;
 };
 
 #endif // _INC_LINEARSUM_H

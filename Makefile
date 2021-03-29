@@ -17,7 +17,9 @@ all: bin/EDmain-gpu\
 	bin/EDmain-cpu\
 	bin/EDDPmain-gpu\
 	bin/EDDPmain-cpu\
+	bin/EDLSmain-gpu\
 	bin/EDLSmain-cpu\
+	bin/EDLDmain-gpu\
 	bin/EDLDmain-cpu
 	
 clean:
