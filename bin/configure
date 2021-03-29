@@ -1,4 +1,4 @@
-Pip = nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)1280, height=(int)720, format=(string)NV12, framerate=(fraction)120/1 ! nvvidconv flip-method=0 ! video/x-raw, width=(int)1960, height=(int)1080, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink
+Pip = nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)1280, height=(int)720, format=(string)NV12, framerate=(fraction)120/1 ! nvvidconv flip-method=0 ! video/x-raw, width=(int)1280, height=(int)720, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink
 # Dev = 0
 
 # cv::VideoCaptureAPIs
@@ -6,9 +6,13 @@ Pip = nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)1280, height=(int)
 # CAP_GSTREAMER => 1800
 ApiPreference = 1800
 
-Display = false
+EDth = 6
+EDk = 2
+LNth = 5
 
-WriteFile = true
+Display = true
+
+WriteFile = false
 SrcFileName = tout_src.jpg
 EdgeFileName = tout_edge.jpg
 LinearFileName = tout_linear.jpg

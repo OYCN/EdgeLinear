@@ -41,6 +41,9 @@ main(int argc, char *args[])
     f.close();
     Config cfg(cwd);
 
+    bool isDisplay = cfg.Read("Display", true);
+    bool isWriteFile = cfg.Read("WriteFile", false);
+
     cv::VideoCapture capture;
     // 根据配置和参数调用不同数据源
     if(argc!=1)
@@ -70,9 +73,9 @@ main(int argc, char *args[])
     int rows = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
     int cols = capture.get(CV_CAP_PROP_FRAME_WIDTH);
 
-    EdgeDrawing ED(rows, cols, 6, 2);
+    EdgeDrawing ED(rows, cols, cfg.Read("EDth", 6), cfg.Read("EDk", 2));
     #ifndef _NLINEAR
-    _LINEAR Linear(rows, cols, 5);
+    _LINEAR Linear(rows, cols, cfg.Read("LNth", 5));
     #endif  // _NLINEAR
     std::cout << rows << " * " << cols << std::endl;
     while(capture.read(src))
@@ -108,7 +111,7 @@ main(int argc, char *args[])
 			}
 		}
         #endif  // _NLINEAR
-        if(cfg.Read("Display", true))
+        if(isDisplay)
         {
             // std::string str = "FPS:" + std::to_string(fps);
             cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
@@ -128,7 +131,7 @@ main(int argc, char *args[])
                 break;
             }
         }
-        if(cfg.Read("WriteFile", false))
+        if(isWriteFile)
         {
             cv::imwrite(cfg.Read("SrcFileName", std::string("out_src.jpg")), src);
             cv::imwrite(cfg.Read("EdgeFileName", std::string("out_edge.jpg")), eMap * 255);
