@@ -42,7 +42,7 @@ main(int argc, char *args[])
     Config cfg(cwd);
 
     cv::VideoCapture capture;
-
+    // 根据配置和参数调用不同数据源
     if(argc!=1)
     {
         capture.open(args[1]);
@@ -111,7 +111,7 @@ main(int argc, char *args[])
 
         // std::string str = "FPS:" + std::to_string(fps);
         cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
-
+        
         cv::namedWindow("Src", CV_WINDOW_NORMAL);
         cv::imshow("Src", src);
         cv::namedWindow("Edge", CV_WINDOW_NORMAL);
@@ -130,5 +130,6 @@ main(int argc, char *args[])
     std::cout << "fps avg: " << fps_sum / fps_num << std::endl;
     std::cout << "fps max: " << fps_max << std::endl;
     std::cout << "fps min: " << fps_min << std::endl;
+    std::cout << "time avg: " << fps_num / fps_sum << std::endl;
     cv::waitKey(0);
 }

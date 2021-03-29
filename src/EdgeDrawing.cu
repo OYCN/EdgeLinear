@@ -1,4 +1,5 @@
 #include "EdgeDrawing.h"
+// #include "Timer.h"
 
 #define LIDX(x, y) [(x) + (y)*lcols]
 #define GIDX(x, y) [(x) + (y)*gcols]
@@ -8,6 +9,7 @@ __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int cols, int ro
 EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
     :rows(_rows), cols(_cols), th(_th), k(_k)
 {
+    HANDLE_ERROR(cudaFree(0));
 	HANDLE_ERROR(cudaMalloc(&gMapd, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&srcd, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&fMapd, sizeof(uchar)*rows*cols));
@@ -42,6 +44,14 @@ void EdgeDrawing::initLoop()
 
 _EDoutput* EdgeDrawing::run(cv::Mat& _src)
 {
+    // TDEF(gpu)
+    // TDEF(init)
+    // TDEF(h2d)
+    // TDEF(kernel)
+    // TDEF(d2h)
+    // TDEF(cpu)
+    // TSTART(gpu)
+    // TSTART(init)
 	// GPU Block 划分
     const dim3 dimBlock(32,32);;
     // GPU Grid 划分
@@ -51,26 +61,42 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
     
     cv::cvtColor(_src, srch, CV_RGB2GRAY);
 	cv::GaussianBlur(srch, srch, cv::Size(5, 5), 1, 0);
+    // TEND(init)
+    // TSTART(h2d)
 	HANDLE_ERROR(cudaMemcpy(srcd, srch.data, sizeof(uchar)*rows*cols, cudaMemcpyHostToDevice));
+    // TEND(h2d)
+    // TSTART(kernel)
     kernelC<<< dimGrid, dimBlock >>>(srcd, gMapd, fMapd, cols, rows, th, k);
     // HANDLE_ERROR(cudaDeviceSynchronize());
+    // TEND(kernel)
+    // TSTART(d2h)
     HANDLE_ERROR(cudaMemcpy(gMaph, gMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
 	HANDLE_ERROR(cudaMemcpy(fMaph, fMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
+    // TEND(d2h)
     // cv::Mat fMap(rows ,cols, CV_8UC1, (unsigned char*)(fMaph));
 	// cv::imshow("fMap", fMap);
+    // TEND(gpu)
+    // TSTART(cpu)
     smartConnecting();
+    // TEND(cpu)
+    // TPRINTMS(gpu, "gpu:")
+    // TPRINTMS(init, "\tinit:")
+    // TPRINTMS(h2d, "\th2d:")
+    // TPRINTMS(kernel, "\tkernel:")
+    // TPRINTMS(d2h, "\td2h:")
+    // TPRINTMS(cpu, "cpu:")
 
 	return &EDoutput;
 }
 
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int grows, int ANCHOR_TH, int K)
 {
-    int gx = blockIdx.x*28 + threadIdx.x;
-    int gy = blockIdx.y*28 + threadIdx.y;
     const int &lx = threadIdx.x;
     const int &ly = threadIdx.y;
     const int &lcols = blockDim.x;
     const int &lrows = blockDim.y;
+    int gx = blockIdx.x*(lcols - 4) + threadIdx.x;
+    int gy = blockIdx.y*(lrows - 4) + threadIdx.y;
     int dx = 0;
     int dy = 0;
     float val = 0;
@@ -85,11 +111,13 @@ __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int g
     // uchar &c = center;
     __shared__ volatile uchar sblur[32*32];
     __shared__ volatile uchar sgMap[32*32];
-
+    // 以上 4.362 ms
+    // 数据写入共享内存 7.5 ms
     if(gx<gcols && gy<grows)
         sblur LIDX(lx, ly) = blur GIDX(gx, gy);
     __syncthreads();
-    // 梯度计算
+    // 以上 11.767 ms
+    // 梯度计算 17.6 ms
 	if(lx!=0 && ly!=0 && lx<(lcols-1) && ly<(lrows-1) && gx<(gcols-1) && gy<(grows-1))
     {
         dx = sblur LIDX(lx+1,ly-1);
@@ -120,7 +148,8 @@ __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int g
         fmap |= (dir<<7)&0x80;
     }
 	__syncthreads();
-    // 锚点提取
+    // 以上 29.3 ms
+    // 锚点提取 21.341 ms
 	if((lx>1 || gx==1) && (ly>1 || gy==1) && (lx<(lcols-2) || gx==(gcols-2)) && (ly<(lrows-2) || gy==(grows-2)) && gx<(gcols-1) && gy<(grows-1))
 	{
 		// h
@@ -164,5 +193,6 @@ __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int g
 
         fMap GIDX(gx,gy) = fmap;
 	}
+    // 以上 50.641 ms
 
 }
