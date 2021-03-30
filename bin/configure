@@ -6,12 +6,17 @@ Pip = nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)1280, height=(int)
 # CAP_GSTREAMER => 1800
 ApiPreference = 1800
 
+<<<<<<< HEAD
 EDth = 6
 EDk = 2
 LNth = 5
 
 Display = true
 
+=======
+Display = true
+
+>>>>>>> 94e3d63c609eec1578a3b1a56c7e5d0ae49009cf
 WriteFile = false
 SrcFileName = tout_src.jpg
 EdgeFileName = tout_edge.jpg
