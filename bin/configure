@@ -10,9 +10,13 @@ EDth = 6
 EDk = 2
 LNth = 5
 
-Display = true
+Display = false
 
 WriteFile = false
 SrcFileName = tout_src.jpg
 EdgeFileName = tout_edge.jpg
 LinearFileName = tout_linear.jpg
+
+#Debug:
+
+LoopTime = 1

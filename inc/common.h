@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include "Timer.h"
 #include "cuda.h"
 #include "cuda_runtime.h"
 
