@@ -12,11 +12,11 @@ LNth = 5
 
 Display = false
 
-WriteFile = true
+WriteFile = false
 SrcFileName = src.jpg
 EdgeFileName = edge.jpg
 LinearFileName = tout_linear.jpg
 
 #Debug:
 
-LoopTime = 3
+LoopTime = 1
