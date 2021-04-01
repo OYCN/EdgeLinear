@@ -36,6 +36,7 @@ private:
     uchar* srcd;
     // 边缘效果图
     uchar* eMaph;
+    uchar* eMaph_bk;    // 每次拷贝入eMaph
     // 用于预处理的临时变量
     cv::Mat srch;
     // 锚点链接时临时变量

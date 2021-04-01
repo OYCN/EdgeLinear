@@ -45,11 +45,6 @@ tmp/EdgeDrawing_gpu.o: src/EdgeDrawing.cu $(INC_FILE)
 	@echo "compile tmp/EdgeDrawing_gpu.o"
 	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) $(CUDA_FLAG)
 
-tmp/smartConnecting.o: src/smartConnecting.cpp $(INC_FILE) 
-	@if [ ! -e tmp ];then mkdir tmp; fi
-	@echo "compile tmp/smartConnecting.o"
-	@$(CXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
-
 # DP Part:
 
 tmp/DouglasPeucker_cpu.o: src/DouglasPeucker.cpp $(INC_FILE) 
@@ -113,7 +108,6 @@ tmp/EDLDmain.o: src/main.cpp $(INC_FILE)
 bin/EDmain-gpu: \
 		tmp/Config.o\
 		tmp/EdgeDrawing_gpu.o\
-		tmp/smartConnecting.o\
 		tmp/EDmain.o
 	@echo "Linking bin/EDmain-gpu"
 	@$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
@@ -121,7 +115,6 @@ bin/EDmain-gpu: \
 bin/EDmain-cpu: \
 		tmp/Config.o\
 		tmp/EdgeDrawing_cpu.o\
-		tmp/smartConnecting.o\
 		tmp/EDmain.o
 	@echo "Linking bin/EDmain-gpuEDmain-cpu"
 	@$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
@@ -131,7 +124,6 @@ bin/EDmain-cpu: \
 bin/EDDPmain-gpu: \
 		tmp/Config.o\
 		tmp/EdgeDrawing_gpu.o\
-		tmp/smartConnecting.o\
 		tmp/DouglasPeucker_gpu.o\
 		tmp/EDDPmain.o
 	@echo "Linking bin/EDDPmain-gpu"
@@ -140,7 +132,6 @@ bin/EDDPmain-gpu: \
 bin/EDDPmain-cpu: \
 		tmp/Config.o\
 		tmp/EdgeDrawing_cpu.o\
-		tmp/smartConnecting.o\
 		tmp/DouglasPeucker_cpu.o\
 		tmp/EDDPmain.o
 	@echo "Linking bin/EDDPmain-cpu"
@@ -151,7 +142,6 @@ bin/EDDPmain-cpu: \
 bin/EDLSmain-gpu: \
 		tmp/Config.o\
 		tmp/EdgeDrawing_gpu.o\
-		tmp/smartConnecting.o\
 		tmp/LinearSum_gpu.o\
 		tmp/EDLSmain.o
 	@echo "Linking bin/EDLSmain-gpu"
@@ -160,7 +150,6 @@ bin/EDLSmain-gpu: \
 bin/EDLSmain-cpu: \
 		tmp/Config.o\
 		tmp/EdgeDrawing_cpu.o\
-		tmp/smartConnecting.o\
 		tmp/LinearSum_cpu.o\
 		tmp/EDLSmain.o
 	@echo "Linking bin/EDLSmain-cpu"
@@ -171,7 +160,6 @@ bin/EDLSmain-cpu: \
 bin/EDLDmain-gpu: \
 		tmp/Config.o\
 		tmp/EdgeDrawing_gpu.o\
-		tmp/smartConnecting.o\
 		tmp/LinearDis_gpu.o\
 		tmp/EDLDmain.o
 	@echo "Linking bin/EDLDmain-gpu"
@@ -180,7 +168,6 @@ bin/EDLDmain-gpu: \
 bin/EDLDmain-cpu: \
 		tmp/Config.o\
 		tmp/EdgeDrawing_cpu.o\
-		tmp/smartConnecting.o\
 		tmp/LinearDis_cpu.o\
 		tmp/EDLDmain.o
 	@echo "Linking bin/EDLDmain-cpu"
