@@ -93,7 +93,7 @@ void EdgeDrawing::goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx)
 
 		eMaph[y*s + x] = 1;
 
-		if (!((fMaph[y*s + x]>>7)&0x01))      // horizonal scanning
+		if (!((fMaph[y*s + x]>>7)&0x01))      // 水平
 		{
 			if (CDIR_L(mydir))
 			{

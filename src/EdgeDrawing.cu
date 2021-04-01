@@ -101,12 +101,13 @@ __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int g
     uchar dir = 0;
 	uchar flag1 = 0;
 	uchar flag2 = 0;
-	int com = 0;
+	int &com = dx;
 	uchar center = 0;
     uchar fmap = 0;
-    // uchar &a = flag1;
-    // uchar &b = flag2;
-    // uchar &c = center;
+    uchar &u = flag1;
+    uchar &d = flag2;
+    uchar &l = center;
+    uchar r;
     __shared__ volatile uchar sblur[32*32];
     __shared__ volatile uchar sgMap[32*32];
     // 以上 4.362 ms
@@ -137,13 +138,13 @@ __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int g
         val = 0.5f*dx + 0.5f*dy;
         if (val > 255) val = 255.0f;
 
-        center = (uchar)(val);
-        sgMap LIDX(lx,ly) = center;
-        gMap GIDX(gx,gy) = center;
-
         // 1 -- vertical   0 -- horizonal
         dir = dx > dy;
         fmap |= (dir<<7)&0x80;
+
+        center = (uchar)(val);
+        sgMap LIDX(lx,ly) = center;
+        gMap GIDX(gx,gy) = center;
     }
 	__syncthreads();
     // 以上 29.3 ms
@@ -171,16 +172,19 @@ __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int g
         // 方向分析
         // 方案1 用于GPU计算结果
         // 	0	0	0	0	0	0	0	0
-        // 					----- A方向（左/上）上/左、下/右
-        // 							----- B方向（右/下）上/左、下/右
+        // 	|   |   AA  A   AB  BA  B   BB
+        //  -dir|
+        //      -keypoint
 
-        // dir : 1 -- vertical   0 -- horizonal
+        // dir : 1 -- 垂直   0 -- 水平 
+        // keypoint: 锚点
+        // 水平:
+        //      A方向 - 左
+        //      B方向 - 右
+        // 垂直:
+        //      A方向 - 上
+        //      B方向 - 下
 
-        //      第一轮       第二轮
-        //   h-0    v-1    h-0   v-1
-        // a 左上 / 上左 | 右上 / 下左
-        // b 左   / 上   | 右   / 下
-        // c 左下 / 上右 | 右下 / 下右
         // a = sgMap LIDX(lx-1, ly-1);
         // b = sgMap LIDX(lx-1, ly) * !dir;
         // b += sgMap LIDX(lx, ly-1) * dir;
