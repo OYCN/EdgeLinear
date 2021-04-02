@@ -108,7 +108,8 @@ main(int argc, char *args[])
                     {
                         if(old_idx > 0)
                         {
-                            cv::line(outMap, EDoutput->edge_set[old_idx], EDoutput->edge_set[j], cv::Scalar(0, 255, 0), 1, 4);
+                            int s0 = rand() % 256, s1 = rand() % 256, s2 = rand() % 256;
+                            cv::line(outMap, EDoutput->edge_set[old_idx], EDoutput->edge_set[j], cv::Scalar(s0, s1, s2), 1, 4);
                         }
                         old_idx = j;
                         
