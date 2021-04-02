@@ -19,8 +19,6 @@ all: bin/EDmain-gpu\
 	bin/EDDPmain-cpu\
 	bin/EDLSmain-gpu\
 	bin/EDLSmain-cpu\
-	bin/EDLDmain-gpu\
-	bin/EDLDmain-cpu\
 	bin/EDbaseline\
 	bin/EDDPbaseline
 	
