@@ -173,6 +173,12 @@ bin/EDLDmain-cpu: \
 	@echo "Linking bin/EDLDmain-cpu"
 	@$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
+bin/baseline: \
+		baseline/EDProcess.cpp\
+		baseline/Main.cpp
+	@echo "Linking bin/baseline"
+	@$(CUDAXX) -o $@ $^ -Ibaseline $(FLAG) $(OPENCVENV)
+
 QueryDev: src/CudaQueryDev.cpp
 	@echo "C&L bin/QueryDev"
 	@$(CUDAXX) -o bin/QueryDev src/CudaQueryDev.cpp $(INC) $(DEF) $(FLAG) $(OPENCVENV)
