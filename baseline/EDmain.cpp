@@ -34,11 +34,12 @@ int main(int argc, char* argv[])
 		fps_sum += fps;
 		fps_num++;
 		
-		// imshow("edge segment", edgeSegments);
+		cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
 		cv::namedWindow("eMap", CV_WINDOW_NORMAL);
      	imshow("eMap", eMap);
 		 cv::namedWindow("src", CV_WINDOW_NORMAL);
 	    imshow("src", src);
+		if(waitKey(1)==27) break;
 	}
 	std::cout << "fps avg: " << fps_sum / fps_num << std::endl;
     std::cout << "fps max: " << fps_max << std::endl;
