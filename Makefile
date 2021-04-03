@@ -20,7 +20,8 @@ all: bin/EDmain-gpu\
 	bin/EDLSmain-gpu\
 	bin/EDLSmain-cpu\
 	bin/EDbaseline\
-	bin/EDDPbaseline
+	bin/EDDPbaseline\
+	bin/EDLSbaseline
 	
 clean:
 	@echo "clean"
@@ -177,13 +178,19 @@ bin/EDbaseline: \
 		baseline/EDProcess.cpp\
 		baseline/EDmain.cpp
 	@echo "Linking bin/EDmain"
-	@$(CUDAXX) -o $@ $^ -Ibaseline $(FLAG) $(OPENCVENV)
+	@$(CXX) -o $@ $^ -Ibaseline $(FLAG) $(OPENCVENV)
 
 bin/EDDPbaseline: \
 		baseline/EDProcess.cpp\
 		baseline/EDDPmain.cpp
 	@echo "Linking bin/EDDPmain"
-	@$(CUDAXX) -o $@ $^ -Ibaseline $(FLAG) $(OPENCVENV)
+	@$(CXX) -o $@ $^ -Ibaseline $(FLAG) $(OPENCVENV)
+
+bin/EDLSbaseline: \
+		baseline/EDProcess.cpp\
+		baseline/EDLSmain.cpp
+	@echo "Linking bin/EDLSmain"
+	@$(CXX) -o $@ $^ -Ibaseline $(FLAG) $(OPENCVENV)
 
 QueryDev: src/CudaQueryDev.cpp
 	@echo "C&L bin/QueryDev"

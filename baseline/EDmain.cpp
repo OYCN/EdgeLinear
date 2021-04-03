@@ -34,18 +34,18 @@ int main(int argc, char* argv[])
 		fps_sum += fps;
 		fps_num++;
 		
-		cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
-		cv::namedWindow("eMap", CV_WINDOW_NORMAL);
-     	imshow("eMap", eMap);
-		 cv::namedWindow("src", CV_WINDOW_NORMAL);
-	    imshow("src", src);
-		if(waitKey(1)==27) break;
+		// cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
+		// cv::namedWindow("eMap", CV_WINDOW_NORMAL);
+     	// imshow("eMap", eMap);
+		//  cv::namedWindow("src", CV_WINDOW_NORMAL);
+	    // imshow("src", src);
+		// if(waitKey(1)==27) break;
 	}
 	std::cout << "fps avg: " << fps_sum / fps_num << std::endl;
     std::cout << "fps max: " << fps_max << std::endl;
     std::cout << "fps min: " << fps_min << std::endl;
     std::cout << "time avg: " << fps_num / fps_sum << std::endl;
-	waitKey(0);
+	// waitKey(0);
 
 	return 0;
 }

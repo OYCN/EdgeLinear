@@ -31,10 +31,33 @@ int main(int argc, char* argv[])
 		std::vector<std::vector<Point>>().swap(linear_seg);
 		for(int e = 0; e < edge_seg.size(); e++)
 		{
-			// std::cout << edge_seg[e] << std::endl;
 			std::vector<Point> line;
-			approxPolyDP(edge_seg[e], line, 5, false);
-			// std::cout << line.size() << std::endl;
+			Point A, B, T;
+			float now_len = 0;
+			A = edge_seg[e][0];
+			line.push_back(A);
+			for(int j = 1; j < edge_seg[e].size(); j++)
+			{
+				B = edge_seg[e][j];
+				T = edge_seg[e][j-1];
+				float dx = T.x - B.x;
+				float dy = T.y - B.y;
+				now_len += sqrt(dx * dx + dy * dy);
+				dx = A.x - B.x;
+				dy = A.y - B.y;
+				float now_dis = sqrt(dx * dx + dy * dy);
+				// 若本次超过阈值，上次的为最佳点
+				if(fabs(now_len - now_dis) > 5)
+				{
+					line.push_back(T);
+					A = T;
+					now_len = 0;
+					// 需要重新计算本点
+					j--;
+				}
+			}
+			// 结束点为最佳点
+			if(A != T) line.push_back(A);
 			linear_seg.push_back(line);
 		}
 
