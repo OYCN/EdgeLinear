@@ -10,7 +10,7 @@
 class EdgeDrawing 
 {
 public:
-    EdgeDrawing(int _rows, int _cols, float _anchor_th, int _k);
+    EdgeDrawing(int _rows, int _cols, float _anchor_th, int _k, int _GFSize, int _GFs1, int _GFs2);
     ~EdgeDrawing();
     _EDoutput* run(cv::Mat &_src);
 
@@ -26,6 +26,10 @@ public:
     float th;
 
 private:
+    // 高斯模糊 卷积核大小
+    int GFSize;
+    int GFs1;
+    int GFs2;
     // 行
     int rows;
     // 列

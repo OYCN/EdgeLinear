@@ -5,8 +5,8 @@
 
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
 
-EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
-    :rows(_rows), cols(_cols), th(_th), k(_k)
+EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k, int _GFSize, int _GFs1, int _GFs2)
+    :rows(_rows), cols(_cols), th(_th), k(_k), GFSize(_GFSize), GFs1(_GFs1), GFs2(_GFs2)
 {
     HANDLE_ERROR(cudaSetDevice(0));
     HANDLE_ERROR(cudaFree(0));
@@ -22,7 +22,7 @@ EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
 	gmat_src = new cv::cuda::GpuMat(rows, cols, CV_8UC3, srcd);
 	gmat_gray = new cv::cuda::GpuMat(rows, cols, CV_8UC1, grayd);
 	gmat_blur = new cv::cuda::GpuMat(rows, cols, CV_8UC1, blurd);
-	gauss = cv::cuda::createGaussianFilter(CV_8U, CV_8U, cv::Size(5, 5), 1, 0);
+	gauss = cv::cuda::createGaussianFilter(CV_8U, CV_8U, cv::Size(GFSize, GFSize), GFs1, GFs2);
 	// 第一次貌似很慢
 	cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY);
 	gauss->apply(*gmat_gray, *gmat_blur);
@@ -70,37 +70,20 @@ void EdgeDrawing::initLoop()
 
 _EDoutput* EdgeDrawing::run(cv::Mat& _src)
 {
-    TDEF(init)
-	// TDEF(p1)
-	// TDEF(p2)
-	// TDEF(p3)
 	// GPU Block 划分
     const dim3 dimBlock(32,32);;
     // GPU Grid 划分
     const dim3 dimGrid((cols+27)/28, (rows+27)/28);
 
-	// initLoop();
-    TSTART(init)
 	#ifdef USE_OPENCV_GPU
-	// TSTART(p1)
 	gmat_src->upload(_src);
-	// TEND(p1)
-	// TSTART(p2)
 	cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY);
-	// TEND(p2)
-	// TSTART(p3)
 	gauss->apply(*gmat_gray, *gmat_blur);
-	// TEND(p3)
 	#else
 	cv::cvtColor(_src, srch, CV_RGB2GRAY);
 	cv::GaussianBlur(srch, srch, cv::Size(5, 5), 1, 0);
 	HANDLE_ERROR(cudaMemcpy(blurd, srch.data, sizeof(uchar)*rows*cols, cudaMemcpyHostToDevice));
 	#endif
-    TEND(init)
-	TPRINTMS(init, "init:")
-	// TPRINTMS(p1, "\tp1:")
-	// TPRINTMS(p2, "\tp2:")
-	// TPRINTMS(p3, "\tp3:")
 	kernelC<<< dimGrid, dimBlock >>>(blurd, gMapd, fMapd, cols, rows, th, k);
     // HANDLE_ERROR(cudaDeviceSynchronize());
     initLoop();

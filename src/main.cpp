@@ -74,7 +74,7 @@ main(int argc, char *args[])
     int rows = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
     int cols = capture.get(CV_CAP_PROP_FRAME_WIDTH);
 
-    EdgeDrawing ED(rows, cols, cfg.Read("EDth", 6), cfg.Read("EDk", 2));
+    EdgeDrawing ED(rows, cols, cfg.Read("EDth", 6), cfg.Read("EDk", 2), cfg.Read("GFSize", 5), cfg.Read("GFs1", 1), cfg.Read("GFs2", 0));
     #ifndef _NLINEAR
     _LINEAR Linear(rows, cols, cfg.Read("LNth", 5));
     #endif  // _NLINEAR

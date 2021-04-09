@@ -5,8 +5,8 @@
 
 void kernelC(uchar *src, uchar * gMap, uchar *fMap, int cols, int rows, int ANCHOR_TH, int K);
 
-EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
-    :rows(_rows), cols(_cols), th(_th), k(_k)
+EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k, int _GFSize, int _GFs1, int _GFs2)
+    :rows(_rows), cols(_cols), th(_th), k(_k), GFSize(_GFSize), GFs1(_GFs1), GFs2(_GFs2)
 {
 	gMaph = new uchar[rows*cols];
 	fMaph = new uchar[rows*cols];
@@ -48,7 +48,7 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
     initLoop();
 	TSTART(init)
     cv::cvtColor(_src, srch, CV_RGB2GRAY);
-	cv::GaussianBlur(srch, srch, cv::Size(5, 5), 1, 0);
+	cv::GaussianBlur(srch, srch, cv::Size(GFSize, GFSize, GFs1, GFs2);
     TEND(init)
     kernelC(srch.data, gMaph, fMaph, cols, rows, th, k);
     smartConnecting();

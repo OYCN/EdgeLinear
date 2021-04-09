@@ -8,9 +8,12 @@ ApiPreference = 1800
 
 EDth = 6
 EDk = 2
+GFSize = 5
+GFs1 = 1
+GFs2 = 0
 LNth = 5
 
-Display = true
+Display = false
 
 WriteFile = false
 SrcFileName = src.jpg
