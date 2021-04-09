@@ -10,7 +10,8 @@
             "defines": [
                 "LINUX",
                 "TIMING",
-                "_DP"
+                "_DP",
+                "USE_OPENCV_GPU"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",

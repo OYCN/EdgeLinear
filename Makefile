@@ -4,7 +4,7 @@ CUDAXX = nvcc
 CUDA = /usr/local/cuda/include
 OPENCVENV = $(shell pkg-config opencv --cflags --libs)
 INC_FILE = $(wildcard $(INCDIR)/*.h)
-DEF = -DLINUX # -DTIMING
+DEF = -DLINUX -DTIMING -DUSE_OPENCV_GPU
 SHELL=/bin/bash
 INC = -I$(INCDIR) -I$(CUDA)
 FLAG = -g -O3
@@ -196,3 +196,10 @@ QueryDev: src/CudaQueryDev.cpp
 	@echo "C&L bin/QueryDev"
 	@$(CUDAXX) -o bin/QueryDev src/CudaQueryDev.cpp $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 	@bin/QueryDev
+	@rm -f bin/QueryDev
+
+GaussianKernel: src/GaussianKernel.cpp
+	@echo "C&L bin/GaussianKernel"
+	@$(CXX) -o bin/GaussianKernel src/GaussianKernel.cpp
+	@bin/GaussianKernel
+	@rm -f bin/GaussianKernel

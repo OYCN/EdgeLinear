@@ -11,10 +11,23 @@ EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
     HANDLE_ERROR(cudaSetDevice(0));
     HANDLE_ERROR(cudaFree(0));
 	HANDLE_ERROR(cudaMalloc(&gMapd, sizeof(uchar)*rows*cols));
-	HANDLE_ERROR(cudaMalloc(&srcd, sizeof(uchar)*rows*cols));
+	HANDLE_ERROR(cudaMalloc(&blurd, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&fMapd, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMemset(gMapd, 0, sizeof(uchar)*rows*cols));
 	HANDLE_ERROR(cudaMemset(fMapd, 0, sizeof(uchar)*rows*cols));
+
+	#ifdef USE_OPENCV_GPU
+	HANDLE_ERROR(cudaMalloc(&srcd, sizeof(uchar)*rows*cols*3));
+	HANDLE_ERROR(cudaMalloc(&grayd, sizeof(uchar)*rows*cols));
+	gmat_src = new cv::cuda::GpuMat(rows, cols, CV_8UC3, srcd);
+	gmat_gray = new cv::cuda::GpuMat(rows, cols, CV_8UC1, grayd);
+	gmat_blur = new cv::cuda::GpuMat(rows, cols, CV_8UC1, blurd);
+	gauss = cv::cuda::createGaussianFilter(CV_8U, CV_8U, cv::Size(5, 5), 1, 0);
+	// 第一次貌似很慢
+	cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY);
+	gauss->apply(*gmat_gray, *gmat_blur);
+	#endif
+
 	gMaph = new uchar[rows*cols];
 	fMaph = new uchar[rows*cols];
 	eMaph = new uchar[rows*cols];
@@ -34,8 +47,12 @@ EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k)
 EdgeDrawing::~EdgeDrawing()
 {
     cudaFree(gMapd);
-	cudaFree(srcd);
+	cudaFree(blurd);
 	cudaFree(fMapd);
+	#ifdef USE_OPENCV_GPU
+	cudaFree(grayd);
+	cudaFree(srcd);
+	#endif
 	delete[] gMaph;
 	delete[] fMaph;
     delete[] eMaph;
@@ -54,6 +71,9 @@ void EdgeDrawing::initLoop()
 _EDoutput* EdgeDrawing::run(cv::Mat& _src)
 {
     TDEF(init)
+	// TDEF(p1)
+	// TDEF(p2)
+	// TDEF(p3)
 	// GPU Block 划分
     const dim3 dimBlock(32,32);;
     // GPU Grid 划分
@@ -61,17 +81,32 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
 
 	// initLoop();
     TSTART(init)
-    cv::cvtColor(_src, srch, CV_RGB2GRAY);
+	#ifdef USE_OPENCV_GPU
+	// TSTART(p1)
+	gmat_src->upload(_src);
+	// TEND(p1)
+	// TSTART(p2)
+	cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY);
+	// TEND(p2)
+	// TSTART(p3)
+	gauss->apply(*gmat_gray, *gmat_blur);
+	// TEND(p3)
+	#else
+	cv::cvtColor(_src, srch, CV_RGB2GRAY);
 	cv::GaussianBlur(srch, srch, cv::Size(5, 5), 1, 0);
-	HANDLE_ERROR(cudaMemcpy(srcd, srch.data, sizeof(uchar)*rows*cols, cudaMemcpyHostToDevice));
+	HANDLE_ERROR(cudaMemcpy(blurd, srch.data, sizeof(uchar)*rows*cols, cudaMemcpyHostToDevice));
+	#endif
     TEND(init)
-	kernelC<<< dimGrid, dimBlock >>>(srcd, gMapd, fMapd, cols, rows, th, k);
+	TPRINTMS(init, "init:")
+	// TPRINTMS(p1, "\tp1:")
+	// TPRINTMS(p2, "\tp2:")
+	// TPRINTMS(p3, "\tp3:")
+	kernelC<<< dimGrid, dimBlock >>>(blurd, gMapd, fMapd, cols, rows, th, k);
     // HANDLE_ERROR(cudaDeviceSynchronize());
     initLoop();
     // HANDLE_ERROR(cudaMemcpy(gMaph, gMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
 	HANDLE_ERROR(cudaMemcpy(fMaph, fMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
     smartConnecting();
-    TPRINTMS(init, "\tinit:")
 
 	return &EDoutput;
 }

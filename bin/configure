@@ -10,7 +10,7 @@ EDth = 6
 EDk = 2
 LNth = 5
 
-Display = false
+Display = true
 
 WriteFile = false
 SrcFileName = src.jpg

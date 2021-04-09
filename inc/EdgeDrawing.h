@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#ifdef USE_OPENCV_GPU
+#include <opencv2/cudafilters.hpp>
+#endif
+
 class EdgeDrawing 
 {
 public:
@@ -32,8 +36,8 @@ private:
     // 标记图
     uchar* fMapd;
     uchar* fMaph;
-    // 输入图
-    uchar* srcd;
+    // 模糊图
+    uchar* blurd;
     // 边缘效果图
     uchar* eMaph;
     uchar* eMaph_bk;    // 每次拷贝入eMaph
@@ -43,6 +47,16 @@ private:
     POINT *edge_smart;
     // 边缘结果
     struct _EDoutput EDoutput;
+    #ifdef USE_OPENCV_GPU
+    // 三通道原图
+    uchar* srcd;
+    // 灰度图
+    uchar* grayd;
+    cv::cuda::GpuMat *gmat_src;
+	cv::cuda::GpuMat *gmat_gray;
+	cv::cuda::GpuMat *gmat_blur;
+    cv::Ptr<cv::cuda::Filter> gauss;
+    #endif
 
 };
 
