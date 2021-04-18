@@ -48,7 +48,7 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
     initLoop();
 	TSTART(init)
     cv::cvtColor(_src, srch, CV_RGB2GRAY);
-	cv::GaussianBlur(srch, srch, cv::Size(GFSize, GFSize, GFs1, GFs2);
+	cv::GaussianBlur(srch, srch, cv::Size(GFSize, GFSize), GFs1, GFs2);
     TEND(init)
     kernelC(srch.data, gMaph, fMaph, cols, rows, th, k);
     smartConnecting();
