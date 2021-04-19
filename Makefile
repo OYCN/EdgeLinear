@@ -2,7 +2,7 @@ INCDIR = inc
 CXX = g++
 CUDAXX = nvcc
 CUDA = /usr/local/cuda/include
-OPENCVENV = $(shell pkg-config opencv --cflags --libs)
+OPENCVENV = $(shell pkg-config opencv4 --cflags --libs)
 INC_FILE = $(wildcard $(INCDIR)/*.h)
 DEF = -DLINUX -DTIMING -DUSE_OPENCV_GPU
 SHELL=/bin/bash
@@ -21,7 +21,8 @@ all: bin/EDmain-gpu\
 	bin/EDLSmain-cpu\
 	bin/EDbaseline\
 	bin/EDDPbaseline\
-	bin/EDLSbaseline
+	bin/EDLSbaseline\
+	bin/imgs2video
 	
 clean:
 	@echo "clean"
@@ -203,3 +204,7 @@ GaussianKernel: src/GaussianKernel.cpp
 	@$(CXX) -o bin/GaussianKernel src/GaussianKernel.cpp
 	@bin/GaussianKernel
 	@rm -f bin/GaussianKernel
+
+bin/imgs2video: utils/imgs2video.cpp
+	@echo "C&L bin/imgs2video"
+	@$(CXX) -o bin/imgs2video utils/imgs2video.cpp $(OPENCVENV)
