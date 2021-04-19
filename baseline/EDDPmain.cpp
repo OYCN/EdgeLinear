@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 	{
 		fps = (double)cv::getTickCount();
 
-		cvtColor(src, grayImg, CV_RGB2GRAY);
+		cvtColor(src, grayImg, cv::COLOR_RGB2GRAY);
 		GaussianBlur(grayImg, blurImg, Size(5,5), 1, 0);
 		std::vector<std::vector<Point>>().swap(edge_seg);
 		eMap = edgeDrawing.Process(blurImg, edge_seg);

@@ -80,7 +80,7 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
 	cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY);
 	gauss->apply(*gmat_gray, *gmat_blur);
 	#else
-	cv::cvtColor(_src, srch, CV_RGB2GRAY);
+	cv::cvtColor(_src, srch, cv::COLOR_RGB2GRAY);
 	cv::GaussianBlur(srch, srch, cv::Size(5, 5), 1, 0);
 	HANDLE_ERROR(cudaMemcpy(blurd, srch.data, sizeof(uchar)*rows*cols, cudaMemcpyHostToDevice));
 	#endif

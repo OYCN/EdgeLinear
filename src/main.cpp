@@ -71,8 +71,8 @@ main(int argc, char *args[])
 		return -1;
 	}
     
-    int rows = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
-    int cols = capture.get(CV_CAP_PROP_FRAME_WIDTH);
+    int rows = capture.get(cv::CAP_PROP_FRAME_HEIGHT);
+    int cols = capture.get(cv::CAP_PROP_FRAME_WIDTH);
 
     EdgeDrawing ED(rows, cols, cfg.Read("EDth", 6), cfg.Read("EDk", 2), cfg.Read("GFSize", 5), cfg.Read("GFs1", 1), cfg.Read("GFs2", 0));
     #ifndef _NLINEAR
@@ -122,12 +122,12 @@ main(int argc, char *args[])
                 // std::string str = "FPS:" + std::to_string(fps);
                 cv::putText(src, std::to_string(fps), cv::Point(5,50), cv::FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2);
                 
-                cv::namedWindow("Src", CV_WINDOW_NORMAL);
+                cv::namedWindow("Src", cv::WINDOW_NORMAL);
                 cv::imshow("Src", src);
-                cv::namedWindow("Edge", CV_WINDOW_NORMAL);
+                cv::namedWindow("Edge", cv::WINDOW_NORMAL);
                 cv::imshow("Edge", eMap * 255);
                 #ifndef _NLINEAR
-                cv::namedWindow("Linear", CV_WINDOW_NORMAL);
+                cv::namedWindow("Linear", cv::WINDOW_NORMAL);
                 cv::imshow("Linear", outMap);
                 #endif // _NLINEAR
 
