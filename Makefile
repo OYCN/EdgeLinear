@@ -21,7 +21,8 @@ all: bin/EDmain-gpu\
 	bin/EDLSmain-cpu\
 	bin/EDbaseline\
 	bin/EDDPbaseline\
-	bin/EDLSbaseline
+	bin/EDLSbaseline\
+	bin/imgs2video
 	
 clean:
 	@echo "clean"
@@ -203,3 +204,7 @@ GaussianKernel: src/GaussianKernel.cpp
 	@$(CXX) -o bin/GaussianKernel src/GaussianKernel.cpp
 	@bin/GaussianKernel
 	@rm -f bin/GaussianKernel
+
+bin/imgs2video: utils/imgs2video.cpp
+	@echo "C&L bin/imgs2video"
+	@$(CXX) -o bin/imgs2video utils/imgs2video.cpp $(OPENCVENV)
