@@ -43,17 +43,11 @@ void EdgeDrawing::initLoop()
 
 _EDoutput* EdgeDrawing::run(cv::Mat& _src)
 {
-    TDEF(init)
-    
     initLoop();
-	TSTART(init)
     cv::cvtColor(_src, srch, cv::COLOR_RGB2GRAY);
 	cv::GaussianBlur(srch, srch, cv::Size(GFSize, GFSize), GFs1, GFs2);
-    TEND(init)
     kernelC(srch.data, gMaph, fMaph, cols, rows, th, k);
     smartConnecting();
-
-    TPRINTMS(init, "\tinit:")
 
 	return &EDoutput;
 }
