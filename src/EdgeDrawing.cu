@@ -42,6 +42,8 @@ EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k, int _GFSize, i
         if(i == 0 || i == (rows - 1) || j == 0 || j == (cols - 1)) eMaph_bk[j + (i*cols)] = 1;
         else eMaph_bk[j + (i*cols)] = 0;
     }
+ 	cv::Mat warmup(rows, cols, CV_8UC3);
+	run(warmup);
 }
 
 EdgeDrawing::~EdgeDrawing()
@@ -70,11 +72,6 @@ void EdgeDrawing::initLoop()
 
 _EDoutput* EdgeDrawing::run(cv::Mat& _src)
 {
-	// GPU Block 划分
-    const dim3 dimBlock(32,32);;
-    // GPU Grid 划分
-    const dim3 dimGrid((cols+27)/28, (rows+27)/28);
-
 	#ifdef USE_OPENCV_GPU
 	gmat_src->upload(_src);
 	cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY);
@@ -84,7 +81,7 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
 	cv::GaussianBlur(srch, srch, cv::Size(5, 5), 1, 0);
 	HANDLE_ERROR(cudaMemcpy(blurd, srch.data, sizeof(uchar)*rows*cols, cudaMemcpyHostToDevice));
 	#endif
-	kernelC<<< dimGrid, dimBlock >>>(blurd, gMapd, fMapd, cols, rows, th, k);
+	kernelRun();
     // HANDLE_ERROR(cudaDeviceSynchronize());
     initLoop();
     // HANDLE_ERROR(cudaMemcpy(gMaph, gMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost));
@@ -92,6 +89,16 @@ _EDoutput* EdgeDrawing::run(cv::Mat& _src)
     smartConnecting();
 
 	return &EDoutput;
+}
+
+void EdgeDrawing::kernelRun()
+{
+	// GPU Block 划分
+    const dim3 dimBlock(32,32);;
+    // GPU Grid 划分
+    const dim3 dimGrid((cols+27)/28, (rows+27)/28);
+
+	kernelC<<< dimGrid, dimBlock >>>(blurd, gMapd, fMapd, cols, rows, th, k);
 }
 
 __global__ void kernelC(uchar *blur, uchar * gMap, uchar *fMap, int gcols, int grows, int ANCHOR_TH, int K)

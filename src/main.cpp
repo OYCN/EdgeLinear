@@ -98,7 +98,8 @@ main(int argc, char *args[])
             fps_num++;
             #ifndef _NLINEAR
             // 绘制直线
-            cv::Mat outMap = cv::Mat::zeros(rows, cols, CV_8UC3);
+            cv::Mat outMap = cv::Mat::ones(rows, cols, CV_8UC1);
+            outMap *= 255;
             for(int i = 0; i < (EDoutput->edge_offset_len - 1); i++)
             {
                 int old_idx = -1;
@@ -109,7 +110,7 @@ main(int argc, char *args[])
                         if(old_idx > 0)
                         {
                             int s0 = rand() % 256, s1 = rand() % 256, s2 = rand() % 256;
-                            cv::line(outMap, EDoutput->edge_set[old_idx], EDoutput->edge_set[j], cv::Scalar(s0, s1, s2), 1, 4);
+                            cv::line(outMap, EDoutput->edge_set[old_idx], EDoutput->edge_set[j], cv::Scalar(0, 0, 0), 1, 4);
                         }
                         old_idx = j;
                         
@@ -140,7 +141,7 @@ main(int argc, char *args[])
             if(isWriteFile)
             {
                 cv::imwrite(cfg.Read("SrcFileName", std::string("out_src.jpg")), src);
-                cv::imwrite(cfg.Read("EdgeFileName", std::string("out_edge.jpg")), eMap * 255);
+                cv::imwrite(cfg.Read("EdgeFileName", std::string("out_edge.jpg")), (1 - eMap) * 255);
                 #ifndef _NLINEAR
                 cv::imwrite(cfg.Read("LinearFileName", std::string("out_linear.jpg")), outMap);
                 #endif // _NLINEAR

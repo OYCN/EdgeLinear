@@ -16,6 +16,7 @@ public:
 
 private:
     void initLoop();
+    void kernelRun();
     void smartConnecting();
     void goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx);
 

@@ -22,6 +22,9 @@ EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k, int _GFSize, i
         if(i == 0 || i == (rows - 1) || j == 0 || j == (cols - 1)) eMaph_bk[j + (i*cols)] = 1;
         else eMaph_bk[j + (i*cols)] = 0;
     }
+	// warm up
+	cv::Mat warmup(rows, cols, CV_8UC3);
+	run(warmup);
 }
 
 EdgeDrawing::~EdgeDrawing()
