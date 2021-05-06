@@ -8,7 +8,8 @@ LinearSum::LinearSum(int _rows, int _cols, float _th)
     HANDLE_ERROR(cudaMalloc(&edge_set_d, sizeof(POINT)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&edge_offset_d, sizeof(int)*(rows*cols+1)));
 	HANDLE_ERROR(cudaMalloc(&flags_d, sizeof(bool)*rows*cols));
-    flags_h = new bool[rows*cols];
+    HANDLE_ERROR(cudaMallocHost(&flags_h, sizeof(bool)*rows*cols));
+    // flags_h = new bool[rows*cols];
 }
 
 LinearSum::~LinearSum()
@@ -16,7 +17,8 @@ LinearSum::~LinearSum()
     cudaFree(edge_set_d);
 	cudaFree(edge_offset_d);
 	cudaFree(flags_d);
-    delete[] flags_h;
+    HANDLE_ERROR(cudaFreeHost(flags_h));
+	// delete[] flags_h;
 }
 
 void LinearSum::initLoop(_EDoutput input)

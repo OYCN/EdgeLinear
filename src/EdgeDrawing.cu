@@ -28,13 +28,20 @@ EdgeDrawing::EdgeDrawing(int _rows, int _cols, float _th, int _k, int _GFSize, i
 	gauss->apply(*gmat_gray, *gmat_blur);
 	#endif
 
-	gMaph = new uchar[rows*cols];
-	fMaph = new uchar[rows*cols];
-	eMaph = new uchar[rows*cols];
-    eMaph_bk = new uchar[rows*cols];
-	EDoutput.edge_set = new POINT[rows*cols];
-	EDoutput.edge_offset = new int[rows*cols+1];
-	edge_smart = new POINT[rows*cols];
+	HANDLE_ERROR(cudaMallocHost(&gMaph, rows*cols*sizeof(uchar)));
+	HANDLE_ERROR(cudaMallocHost(&fMaph, rows*cols*sizeof(uchar)));
+	HANDLE_ERROR(cudaMallocHost(&eMaph, rows*cols*sizeof(uchar)));
+	HANDLE_ERROR(cudaMallocHost(&eMaph_bk, rows*cols*sizeof(uchar)));
+	HANDLE_ERROR(cudaMallocHost(&EDoutput.edge_set, rows*cols*sizeof(POINT)));
+	HANDLE_ERROR(cudaMallocHost(&EDoutput.edge_offset, rows*cols*sizeof(int)));
+	HANDLE_ERROR(cudaMallocHost(&edge_smart, rows*cols*sizeof(POINT)));
+	// gMaph = new uchar[rows*cols];
+	// fMaph = new uchar[rows*cols];
+	// eMaph = new uchar[rows*cols];
+    // eMaph_bk = new uchar[rows*cols];
+	// EDoutput.edge_set = new POINT[rows*cols];
+	// EDoutput.edge_offset = new int[rows*cols+1];
+	// edge_smart = new POINT[rows*cols];
     EDoutput.eMap = eMaph;
     for(int i = 0; i < rows; i++)
     for(int j = 0; j < cols; j++)
@@ -55,13 +62,20 @@ EdgeDrawing::~EdgeDrawing()
 	cudaFree(grayd);
 	cudaFree(srcd);
 	#endif
-	delete[] gMaph;
-	delete[] fMaph;
-    delete[] eMaph;
-    delete[] eMaph_bk;
-	delete[] EDoutput.edge_set;
-	delete[] EDoutput.edge_offset;
-	delete[] edge_smart;
+	HANDLE_ERROR(cudaFreeHost(gMaph));
+	HANDLE_ERROR(cudaFreeHost(fMaph));
+	HANDLE_ERROR(cudaFreeHost(eMaph));
+	HANDLE_ERROR(cudaFreeHost(eMaph_bk));
+	HANDLE_ERROR(cudaFreeHost(EDoutput.edge_set));
+	HANDLE_ERROR(cudaFreeHost(EDoutput.edge_offset));
+	HANDLE_ERROR(cudaFreeHost(edge_smart));
+	// delete[] gMaph;
+	// delete[] fMaph;
+    // delete[] eMaph;
+    // delete[] eMaph_bk;
+	// delete[] EDoutput.edge_set;
+	// delete[] EDoutput.edge_offset;
+	// delete[] edge_smart;
 }
 
 void EdgeDrawing::initLoop()

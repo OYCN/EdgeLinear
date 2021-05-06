@@ -11,7 +11,8 @@ DouglasPeucker::DouglasPeucker(int _rows, int _cols, float _th)
 	HANDLE_ERROR(cudaMalloc(&edge_offset_d, sizeof(int)*(rows*cols+1)));
 	HANDLE_ERROR(cudaMalloc(&flags_d, sizeof(bool)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&stack_d, sizeof(POINT)*rows*cols));
-    flags_h = new bool[rows*cols];
+	HANDLE_ERROR(cudaMallocHost(&flags_h, sizeof(bool)*rows*cols));
+    // flags_h = new bool[rows*cols];
 }
 
 DouglasPeucker::~DouglasPeucker()
@@ -20,7 +21,8 @@ DouglasPeucker::~DouglasPeucker()
 	cudaFree(edge_offset_d);
 	cudaFree(flags_d);
 	cudaFree(stack_d);
-	delete[] flags_h;
+	HANDLE_ERROR(cudaFreeHost(flags_h));
+	// delete[] flags_h;
 }
 
 void DouglasPeucker::initLoop(_EDoutput input)
