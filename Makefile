@@ -71,18 +71,6 @@ tmp/LinearSum_gpu.o: src/LinearSum.cu $(INC_FILE)
 	@echo "compile tmp/LinearSum_gpu.o"
 	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) $(CUDA_FLAG)
 
-# LD Part:
-
-tmp/LinearDis_cpu.o: src/LinearDis.cpp $(INC_FILE) 
-	@if [ ! -e tmp ];then mkdir tmp; fi
-	@echo "compile tmp/LinearDis_cpu.o"
-	@$(CXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
-
-tmp/LinearDis_gpu.o: src/LinearDis.cu $(INC_FILE) 
-	@if [ ! -e tmp ];then mkdir tmp; fi
-	@echo "compile tmp/LinearDis_gpu.o"
-	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) $(CUDA_FLAG)
-
 # COMMON Part
 
 tmp/EDmain.o: src/main.cpp $(INC_FILE) 
@@ -99,11 +87,6 @@ tmp/EDLSmain.o: src/main.cpp $(INC_FILE)
 	@if [ ! -e tmp ];then mkdir tmp; fi
 	@echo "compile tmp/EDLSmain.o"
 	@$(CXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -D_LS
-
-tmp/EDLDmain.o: src/main.cpp $(INC_FILE) 
-	@if [ ! -e tmp ];then mkdir tmp; fi
-	@echo "compile tmp/EDLDmain.o"
-	@$(CXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV) -D_LD
 
 # ED bin Part
 
@@ -155,24 +138,6 @@ bin/EDLSmain-cpu: \
 		tmp/LinearSum_cpu.o\
 		tmp/EDLSmain.o
 	@echo "Linking bin/EDLSmain-cpu"
-	@$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
-
-# ED & LD bin Part
-
-bin/EDLDmain-gpu: \
-		tmp/Config.o\
-		tmp/EdgeDrawing_gpu.o\
-		tmp/LinearDis_gpu.o\
-		tmp/EDLDmain.o
-	@echo "Linking bin/EDLDmain-gpu"
-	@$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
-
-bin/EDLDmain-cpu: \
-		tmp/Config.o\
-		tmp/EdgeDrawing_cpu.o\
-		tmp/LinearDis_cpu.o\
-		tmp/EDLDmain.o
-	@echo "Linking bin/EDLDmain-cpu"
 	@$(CUDAXX) -o $@ $^ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 bin/EDbaseline: \
