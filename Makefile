@@ -173,3 +173,18 @@ GaussianKernel: src/GaussianKernel.cpp
 bin/imgs2video: utils/imgs2video.cpp
 	@echo "C&L bin/imgs2video"
 	@$(CXX) -o bin/imgs2video utils/imgs2video.cpp $(OPENCVENV)
+
+tmp/BlockGetFlag.o: src/BlockGetFlag.cu inc/BlockGetFlag.h
+	@if [ ! -e tmp ];then mkdir tmp; fi
+	@echo "compile tmp/BlockGetFlag.o"
+	@$(CUDAXX) -c src/BlockGetFlag.cu -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+
+tmp/newmain.o: src/newmain.cpp
+	@if [ ! -e tmp ];then mkdir tmp; fi
+	@echo "compile tmp/newmain.o"
+	@$(CUDAXX) -c src/newmain.cpp -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+
+bin/newmain: tmp/BlockGetFlag.o tmp/newmain.o inc/BlockGetFlag.h inc/BlockPipline.h
+	@if [ ! -e tmp ];then mkdir tmp; fi
+	@echo "compile bin/newmain"
+	@$(CUDAXX) tmp/BlockGetFlag.o tmp/newmain.o -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
