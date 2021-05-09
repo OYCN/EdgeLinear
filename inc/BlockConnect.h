@@ -1,65 +1,34 @@
-#ifndef _INC_BLOCKED_H
-#define _INC_BLOCKED_H
+#ifndef _INC_BLOCKCONNECT_H
+#define _INC_BLOCKCONNECT_H
 
 #include "common.h"
-#include <opencv2/core/cuda_stream_accessor.hpp>
-#include <opencv2/cudafilters.hpp>
 
-class BlockGetFlag
+class BlockConnect
 {
 public:
-    BlockGetFlag(int _rows, int _cols, float _th, int _k, int _GFSize, int _GFs1, int _GFs2)
-        :rows(_rows), cols(_cols), th(_th), k(_k), GFSize(_GFSize), GFs1(_GFs1), GFs2(_GFs2) {init();}
-    ~BlockGetFlag(){deinit();}
-    void start();
-    void setFeeder(std::function<void (cv::Mat*)> _feeder) {feeder = _feeder;}
-    static void CUDART_CB Callback(cudaStream_t stream, cudaError_t status, void *data)
-    {
-        BlockGetFlag* thiz = (BlockGetFlag*) data;
-        thiz->callbackFunc();
-    }
+    BlockConnect(int _rows, int _cols)
+        :rows(_rows), cols(_cols) {init();}
+    ~BlockConnect(){deinit();}
+    void execute(uchar* fMaph);
+    _EDoutput* getOutput() {return &edges;}
 
 private:
     void init();
     void deinit();
-    void compute();
-    void kernel();
-    void callbackFunc();
 
 private:
-    // 稀疏度
-    int k;
-    // 阈值
-    float th;
-    // 高斯模糊 卷积核大小
-    int GFSize;
-    int GFs1;
-    int GFs2;
     // 行
     int rows;
     // 列
     int cols;
 
-    cv::cuda::Stream cvstream;
-    cudaStream_t custream;
-    std::function<void (cv::Mat*)> feeder = {};
-
-    uchar* srch;
-    cv::Mat* sMap;
-    uchar* srcd;
-    cv::cuda::GpuMat *gmat_src;
-    uchar* grayd;
-    cv::cuda::GpuMat *gmat_gray;
-    uchar* blurd;
-	cv::cuda::GpuMat *gmat_blur;
-
-    uchar* fMapd;
-
-    cv::Ptr<cv::cuda::Filter> gauss;
-
+    _EDoutput edges;
+    uchar* eMaph_bk;
+    POINT* edge_smart;
 
 };
 
-__global__ void kernelC(uchar *blur, uchar *fMap, int gcols, int grows, int ANCHOR_TH, int K);
+void smartConnecting(int rows, int cols, uchar* fMaph, uchar* eMaph, POINT* edge_smart, POINT* edge_set, int* edge_offset, int& edge_offset_len);
+void goMove(int x, int y, uchar mydir, POINT *edge_s, int &idx, uchar* eMaph, uchar* fMaph, int rows, int cols);
 
-#endif // _INC_BLOCKED_H
+#endif  // _INC_BLOCKCONNECT_H

@@ -76,7 +76,9 @@
         "__functional_base": "cpp",
         "ios": "cpp",
         "__locale": "cpp",
-        "__config": "cpp"
+        "__config": "cpp",
+        "__node_handle": "cpp",
+        "__mutex_base": "cpp"
     },
     "workbench.colorCustomizations": {
         "editor.selectionBackground": "#d1d1c6",

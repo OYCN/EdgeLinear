@@ -7,7 +7,7 @@ INC_FILE = $(wildcard $(INCDIR)/*.h)
 DEF = -DLINUX -DTIMING -DUSE_OPENCV_GPU
 SHELL=/bin/bash
 INC = -I$(INCDIR) -I$(CUDA)
-FLAG = -g -O3
+FLAG = -g
 CUDA_FLAG = -Xptxas="-v"
 # LIB = -L/usr/local/cuda/lib64/
 
@@ -26,6 +26,7 @@ all: bin/EDmain-gpu\
 	
 clean:
 	@echo "clean"
+	@rm -f bin/newmain
 	@rm -f bin/ED*
 	@rm -f tmp/*
 
@@ -177,14 +178,39 @@ bin/imgs2video: utils/imgs2video.cpp
 tmp/BlockGetFlag.o: src/BlockGetFlag.cu inc/BlockGetFlag.h
 	@if [ ! -e tmp ];then mkdir tmp; fi
 	@echo "compile tmp/BlockGetFlag.o"
-	@$(CUDAXX) -c src/BlockGetFlag.cu -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+
+tmp/BlockConnect.o: src/BlockConnect.cpp inc/BlockConnect.h
+	@if [ ! -e tmp ];then mkdir tmp; fi
+	@echo "compile tmp/BlockConnect.o"
+	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+
+tmp/BlockLinear.o: src/BlockLinear.cu inc/BlockLinear.h
+	@if [ ! -e tmp ];then mkdir tmp; fi
+	@echo "compile tmp/BlockLinear.o"
+	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+
+tmp/BlockPipline.o: src/BlockPipline.cpp inc/BlockPipline.h
+	@if [ ! -e tmp ];then mkdir tmp; fi
+	@echo "compile tmp/BlockPipline.o"
+	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+
+tmp/BlockWarper.o: src/BlockWarper.cpp inc/BlockWarper.h
+	@if [ ! -e tmp ];then mkdir tmp; fi
+	@echo "compile tmp/BlockWarper.o"
+	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
 tmp/newmain.o: src/newmain.cpp
 	@if [ ! -e tmp ];then mkdir tmp; fi
 	@echo "compile tmp/newmain.o"
-	@$(CUDAXX) -c src/newmain.cpp -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+	@$(CUDAXX) -c $< -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
 
-bin/newmain: tmp/BlockGetFlag.o tmp/newmain.o inc/BlockGetFlag.h inc/BlockPipline.h
+bin/newmain: tmp/BlockGetFlag.o \
+			 tmp/BlockConnect.o \
+			 tmp/BlockLinear.o \
+			 tmp/BlockWarper.o \
+			 tmp/BlockPipline.o \
+			 tmp/newmain.o
 	@if [ ! -e tmp ];then mkdir tmp; fi
 	@echo "compile bin/newmain"
-	@$(CUDAXX) tmp/BlockGetFlag.o tmp/newmain.o -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)
+	@$(CUDAXX) $^ -o $@ $(INC) $(DEF) $(FLAG) $(OPENCVENV)

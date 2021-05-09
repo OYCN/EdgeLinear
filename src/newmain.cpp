@@ -1,9 +1,13 @@
-#include "BlockPipline.h"
+#include "BlockWarper.h"
+#include <unistd.h>
 
 int main()
 {
+    double fps, fps_max = 0, fps_min = 999, fps_sum = 0;
+    int fps_num = 0;
+
     cv::VideoCapture capture;
-    capture.open(0);
+    capture.open("img/Robotica_1080.wmv");
     if(!capture.isOpened())
 	{
 		printf("[%s][%d]could not load video data...\n",__FUNCTION__,__LINE__);
@@ -12,8 +16,70 @@ int main()
     int rows = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
     int cols = capture.get(CV_CAP_PROP_FRAME_WIDTH);
 
-    BlockGetFlag blk(rows, cols, 6, 2, 5, 1, 0);
-    blk.setFeeder([&](cv::Mat* src){capture.read(*src);});
-    blk.start();
-    std::cout << "end of main" << std::endl;
+    _Configure cfg;
+    cfg.rows = rows;
+    cfg.cols = cols;
+    cfg.th1 = 6;
+    cfg.k = 2;
+    cfg.GFSize = 5;
+    cfg.GFs1 = 1;
+    cfg.GFs2 = 0;
+    cfg.th2 = 5;
+
+    BlockWarper warper(3, cfg);
+
+    warper.setFeeder([&](cv::Mat& v){return capture.read(v) ? true : false;});
+
+    warper.start();
+
+    POINT* edge_set = new POINT[rows * cols];
+    int* edge_offset = new int[rows * cols];
+    int edge_offset_len = 0;
+    bool* flags = new bool[rows * cols];
+
+    fps = (double)cv::getTickCount();
+    while(warper.waitOne(edge_set, edge_offset, edge_offset_len, flags))
+    {   
+        fps = cv::getTickFrequency()/((double)cv::getTickCount() - fps);
+        if(fps > fps_max) fps_max = fps;
+        if(fps < fps_min) fps_min = fps;
+        fps_sum += fps;
+        fps_num++;
+
+        usleep(1000 * 0);
+
+        // cv::Mat outMap = cv::Mat::ones(rows, cols, CV_8UC3);
+        // for(int i = 0; i < (edge_offset_len - 1); i++)
+        // {
+        //     int old_idx = -1;
+        //     for(int j = edge_offset[i]; j < edge_offset[i+1]; j++)
+        //     {
+        //         if(flags[j])
+        //         {
+        //             if(old_idx > 0)
+        //             {
+        //                 int s0 = rand() % 256, s1 = rand() % 256, s2 = rand() % 256;
+        //                 cv::line(outMap, edge_set[old_idx], edge_set[j], cv::Scalar(255, 255, 255), 1, 4);
+        //             }
+        //             old_idx = j;
+                    
+        //         }
+        //     }
+        // }
+
+        // cv::imshow("outMap", outMap);
+        // if(cv::waitKey(1) == ' ')
+        // {
+        //     break;
+        // }
+
+        fps = (double)cv::getTickCount();
+    }
+    warper.join();
+    std::cout << "fps avg: " << fps_sum / fps_num << std::endl;
+    std::cout << "fps max: " << fps_max << std::endl;
+    std::cout << "fps min: " << fps_min << std::endl;
+    std::cout << "time avg: " << fps_num / fps_sum << std::endl;
+    std::cout << "img num: " << fps_num << std::endl;
+    
 }

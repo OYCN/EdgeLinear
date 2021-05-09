@@ -2,9 +2,6 @@
 
 void BlockGetFlag::init()
 {
-    custream = cv::cuda::StreamAccessor::getStream(cvstream);
-    HANDLE_ERROR(cudaMallocHost(&srch, sizeof(uchar)*rows*cols*3));
-    sMap = new cv::Mat(rows, cols, CV_8UC3, srch);
     HANDLE_ERROR(cudaMalloc(&srcd, sizeof(uchar)*rows*cols*3));
     gmat_src = new cv::cuda::GpuMat(rows, cols, CV_8UC3, srcd);
     HANDLE_ERROR(cudaMalloc(&grayd, sizeof(uchar)*rows*cols));
@@ -14,6 +11,8 @@ void BlockGetFlag::init()
 
     HANDLE_ERROR(cudaMalloc(&fMapd, sizeof(uchar)*rows*cols));
 
+    HANDLE_ERROR(cudaMallocHost(&fMaph, rows*cols*sizeof(uchar)));
+
     gauss = cv::cuda::createGaussianFilter(CV_8U, CV_8U, cv::Size(GFSize, GFSize), GFs1, GFs2);
     cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY);
 	gauss->apply(*gmat_gray, *gmat_blur);
@@ -22,38 +21,26 @@ void BlockGetFlag::init()
 
 void BlockGetFlag::deinit()
 {
-    HANDLE_ERROR(cudaFreeHost(srch));
     HANDLE_ERROR(cudaFree(srcd));
     HANDLE_ERROR(cudaFree(grayd));
     HANDLE_ERROR(cudaFree(blurd));
     HANDLE_ERROR(cudaFree(fMapd));
+    HANDLE_ERROR(cudaFreeHost(fMaph));
 }
 
-void BlockGetFlag::start()
+void BlockGetFlag::enqueue(cv::Mat& sMaph, cv::cuda::Stream& cvstream)
 {
-    if(feeder == nullptr) return;
-    feeder(sMap);
-    HANDLE_ERROR(cudaMemcpyAsync(srcd, srch, sizeof(uchar)*rows*cols*3, cudaMemcpyHostToDevice, custream));
-	cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY, 0, cvstream);
-	gauss->apply(*gmat_gray, *gmat_blur, cvstream);
-    kernel();
-    HANDLE_ERROR(cudaStreamAddCallback(custream, BlockGetFlag::Callback, this, 0));
-    std::cout << "over" << std::endl;
-}
-
-void BlockGetFlag::callbackFunc()
-{
-    std::cout << "over a loop" << std::endl;
-}
-
-void BlockGetFlag::kernel()
-{
-	// GPU Block 划分
+    // GPU Block 划分
     const dim3 dimBlock(32,32);;
     // GPU Grid 划分
     const dim3 dimGrid((cols+27)/28, (rows+27)/28);
 
-	kernelC<<< dimGrid, dimBlock >>>(blurd, fMapd, cols, rows, th, k);
+    cudaStream_t custream = cv::cuda::StreamAccessor::getStream(cvstream);
+    HANDLE_ERROR(cudaMemcpyAsync(srcd, sMaph.data, sizeof(uchar)*rows*cols*3, cudaMemcpyHostToDevice, custream));
+	cv::cuda::cvtColor(*gmat_src, *gmat_gray, CV_RGB2GRAY, 0, cvstream);
+	gauss->apply(*gmat_gray, *gmat_blur, cvstream);
+    kernelC<<< dimGrid, dimBlock, 0,custream >>>(blurd, fMapd, cols, rows, th, k);
+    HANDLE_ERROR(cudaMemcpyAsync(fMaph, fMapd, sizeof(uchar)*rows*cols, cudaMemcpyDeviceToHost, custream));
 }
 
 __global__ void kernelC(uchar *blur, uchar *fMap, int gcols, int grows, int ANCHOR_TH, int K)

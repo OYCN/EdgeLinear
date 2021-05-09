@@ -152,6 +152,7 @@ main(int argc, char *args[])
     std::cout << "fps max: " << fps_max << std::endl;
     std::cout << "fps min: " << fps_min << std::endl;
     std::cout << "time avg: " << fps_num / fps_sum << std::endl;
+    std::cout << "img num: " << fps_num << std::endl;
     if(cfg.Read("Display", true))
         cv::waitKey(0);
 }
