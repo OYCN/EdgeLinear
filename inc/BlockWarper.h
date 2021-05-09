@@ -7,33 +7,23 @@
 #include <atomic>
 #include <condition_variable>
 
-struct _LoopListNode
+struct _Context
 {
-    BlockPipline* main;
-    _LoopListNode* next;
-    pthread_t tid;
-    int index;
-};
-
-struct _LoopList
-{
-    std::vector<_LoopListNode*> list;
-    _LoopListNode* geter;
-};
-
-struct _ThreadInput
-{
-    _LoopListNode* node;
+    BlockPipline* app;
+    std::vector<BlockPipline*>* app_list;
+    std::vector<_Context*>* context_list;
     std::function<bool(cv::Mat&)>* feeder;
+    std::condition_variable* worker_condition;
+
+    int app_index;
+    int next_app_index;
+    pthread_t tid;
+    bool first_feed;
+
     std::mutex mutex;
-    // std::mutex* feeder_lock;
-    std::atomic_bool this_read;
-    std::atomic_bool* next_read;
-    std::condition_variable* feeder_condition;
-    std::condition_variable condition;
+    std::condition_variable pauseCondition;
     std::atomic_bool pauseFlag;
     std::atomic_bool endFlag;
-    std::condition_variable* worker_condition;
 };
 
 struct _Configure
@@ -63,19 +53,17 @@ private:
     void init();
     void deinit();
 
-    static bool runFeed(_ThreadInput* args, cv::Mat& v);
+    static bool runFeed(_Context* args, cv::Mat& v);
     static void *perThread(void* data);
 
 private:
     int level;
     std::function<bool(cv::Mat&)> feeder;
-    _LoopList looplist;
+    std::vector<_Context*> context_list;
+    std::vector<BlockPipline*> app_list;
     _Configure configure;
-    std::vector<_ThreadInput*> thInputs;
     std::mutex worker_lock;
-    std::mutex feeder_lock;
     std::condition_variable worker_condition;
-    std::condition_variable feeder_condition;
 };
 
 #endif // _INC_BLOCKWARPER_H

@@ -3,8 +3,7 @@
 
 int main(int argc, char* argv[])
 {
-    double fps, fps_max = 0, fps_min = 999, fps_sum = 0;
-    int fps_num = 0;
+    int loop_time = 0;
 
     int delay = 0;
     int level = 1;
@@ -49,7 +48,7 @@ int main(int argc, char* argv[])
     bool* flags; // = new bool[rows * cols];
     HANDLE_ERROR(cudaMallocHost(&flags, sizeof(bool)*rows*cols));
 
-    fps = (double)cv::getTickCount();
+    int64 tickcount = (double)cv::getTickCount();
     while(warper.waitOne(edge_set, edge_offset, edge_offset_len, flags))
     {   
         usleep(1000 * delay);
@@ -81,24 +80,19 @@ int main(int argc, char* argv[])
                 break;
             }
         }
-        
-        fps = cv::getTickFrequency()/((double)cv::getTickCount() - fps);
-        if(fps > fps_max) fps_max = fps;
-        if(fps < fps_min) fps_min = fps;
-        fps_sum += fps;
-        fps_num++;
-        fps = (double)cv::getTickCount();
+        loop_time++;
     }
+    tickcount = ((double)cv::getTickCount() - tickcount) / loop_time;
+    double fps = cv::getTickFrequency() / tickcount;
+    double time = tickcount / cv::getTickFrequency();
     warper.join();
 
     delete[] edge_set;
     delete[] edge_offset;
     HANDLE_ERROR(cudaFreeHost(flags));
 
-    std::cout << "fps avg: " << fps_sum / fps_num << std::endl;
-    std::cout << "fps max: " << fps_max << std::endl;
-    std::cout << "fps min: " << fps_min << std::endl;
-    std::cout << "time avg: " << fps_num / fps_sum << std::endl;
-    std::cout << "img num: " << fps_num << std::endl;
+    std::cout << "fps avg: " << fps << std::endl;
+    std::cout << "time avg: " << time << std::endl;
+    std::cout << "loop_time: " << loop_time << std::endl;
     
 }
