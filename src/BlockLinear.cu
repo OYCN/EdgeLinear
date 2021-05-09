@@ -7,7 +7,8 @@ void BlockLinear::init()
     HANDLE_ERROR(cudaMalloc(&edge_set_d, sizeof(POINT)*rows*cols));
 	HANDLE_ERROR(cudaMalloc(&edge_offset_d, sizeof(int)*(rows*cols+1)));
 	HANDLE_ERROR(cudaMalloc(&flags_d, sizeof(bool)*rows*cols));
-    HANDLE_ERROR(cudaMallocHost(&flags_h, sizeof(bool)*rows*cols));
+    if(returnH)
+        HANDLE_ERROR(cudaMallocHost(&flags_h, sizeof(bool)*rows*cols));
 }
 
 void BlockLinear::deinit()
@@ -15,13 +16,14 @@ void BlockLinear::deinit()
     HANDLE_ERROR(cudaFree(edge_set_d));
 	HANDLE_ERROR(cudaFree(edge_offset_d));
 	HANDLE_ERROR(cudaFree(flags_d));
-    HANDLE_ERROR(cudaFreeHost(flags_h));
+    if(returnH)
+        HANDLE_ERROR(cudaFreeHost(flags_h));
 }
 
 void BlockLinear::enqueue(_EDoutput fMaph, cv::cuda::Stream& cvstream)
 {
     const dim3 dimBlock(32,1);
-    const dim3 dimGrid(cols*rows / 32, 1);
+    const dim3 dimGrid((cols*rows+31) / 32, 1);
 
     cudaStream_t custream = cv::cuda::StreamAccessor::getStream(cvstream);
 
@@ -31,7 +33,8 @@ void BlockLinear::enqueue(_EDoutput fMaph, cv::cuda::Stream& cvstream)
 
     kernel<<<dimGrid, dimBlock, 0, custream>>>(edge_set_d, edge_offset_d, fMaph.edge_offset_len, flags_d, th);
 	// HANDLE_ERROR(cudaDeviceSynchronize());
-	HANDLE_ERROR(cudaMemcpyAsync(flags_h, flags_d, sizeof(bool)*rows*cols, cudaMemcpyDeviceToHost, custream));
+    if(returnH)
+	    HANDLE_ERROR(cudaMemcpyAsync(flags_h, flags_d, sizeof(bool)*(fMaph.edge_offset)[(fMaph.edge_offset_len)-1], cudaMemcpyDeviceToHost, custream));
 
 
 }

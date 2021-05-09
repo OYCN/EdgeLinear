@@ -7,11 +7,11 @@
 class BlockLinear
 {
 public:
-    BlockLinear(int _rows, int _cols, float _th)
-        :rows(_rows), cols(_cols), th(_th) {init();}
+    BlockLinear(int _rows, int _cols, float _th, bool _returnH)
+        :rows(_rows), cols(_cols), th(_th), returnH(_returnH) {init();}
     ~BlockLinear(){deinit();}
     void enqueue(_EDoutput fMaph, cv::cuda::Stream& cvstream);
-    bool* getOutput(){return flags_h;}
+    bool* getOutput(){ return returnH ? flags_h : flags_d;}
 
 private:
     void init();
@@ -21,6 +21,8 @@ private:
     int rows;
     int cols;
     float th;
+
+    bool returnH;
 
     POINT* edge_set_d;
     int* edge_offset_d;

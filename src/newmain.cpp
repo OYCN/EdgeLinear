@@ -8,12 +8,14 @@ int main(int argc, char* argv[])
 
     int delay = 0;
     int level = 1;
+    bool display = false;
 
-    if(argc == 3)
+    if(argc > 2)
     {
         level = std::atoi(argv[1]);
         delay = std::atoi(argv[2]);
     }
+    if(argc > 3) display = true;
     cv::VideoCapture capture;
     capture.open("img/Robotica_1080.wmv");
     if(!capture.isOpened())
@@ -33,6 +35,7 @@ int main(int argc, char* argv[])
     cfg.GFs1 = 1;
     cfg.GFs2 = 0;
     cfg.th2 = 5;
+    cfg.returnH = false;
 
     BlockWarper warper(level, cfg);
 
@@ -43,37 +46,42 @@ int main(int argc, char* argv[])
     POINT* edge_set = new POINT[rows * cols];
     int* edge_offset = new int[rows * cols];
     int edge_offset_len = 0;
-    bool* flags = new bool[rows * cols];
+    bool* flags; // = new bool[rows * cols];
+    HANDLE_ERROR(cudaMallocHost(&flags, sizeof(bool)*rows*cols));
 
     fps = (double)cv::getTickCount();
     while(warper.waitOne(edge_set, edge_offset, edge_offset_len, flags))
     {   
         usleep(1000 * delay);
+        
+        if(display)
+        {
+            cv::Mat outMap = cv::Mat::ones(rows, cols, CV_8UC3);
+            for(int i = 0; i < (edge_offset_len - 1); i++)
+            {
+                int old_idx = -1;
+                for(int j = edge_offset[i]; j < edge_offset[i+1]; j++)
+                {
+                    if(flags[j])
+                    {
+                        if(old_idx > 0)
+                        {
+                            int s0 = rand() % 256, s1 = rand() % 256, s2 = rand() % 256;
+                            cv::line(outMap, edge_set[old_idx], edge_set[j], cv::Scalar(255, 255, 255), 1, 4);
+                        }
+                        old_idx = j;
+                        
+                    }
+                }
+            }
 
-        // cv::Mat outMap = cv::Mat::ones(rows, cols, CV_8UC3);
-        // for(int i = 0; i < (edge_offset_len - 1); i++)
-        // {
-        //     int old_idx = -1;
-        //     for(int j = edge_offset[i]; j < edge_offset[i+1]; j++)
-        //     {
-        //         if(flags[j])
-        //         {
-        //             if(old_idx > 0)
-        //             {
-        //                 int s0 = rand() % 256, s1 = rand() % 256, s2 = rand() % 256;
-        //                 cv::line(outMap, edge_set[old_idx], edge_set[j], cv::Scalar(255, 255, 255), 1, 4);
-        //             }
-        //             old_idx = j;
-                    
-        //         }
-        //     }
-        // }
-
-        // cv::imshow("outMap", outMap);
-        // if(cv::waitKey(1) == ' ')
-        // {
-        //     break;
-        // }
+            cv::imshow("outMap", outMap);
+            if(cv::waitKey(1) == ' ')
+            {
+                break;
+            }
+        }
+        
         fps = cv::getTickFrequency()/((double)cv::getTickCount() - fps);
         if(fps > fps_max) fps_max = fps;
         if(fps < fps_min) fps_min = fps;
@@ -82,6 +90,11 @@ int main(int argc, char* argv[])
         fps = (double)cv::getTickCount();
     }
     warper.join();
+
+    delete[] edge_set;
+    delete[] edge_offset;
+    HANDLE_ERROR(cudaFreeHost(flags));
+
     std::cout << "fps avg: " << fps_sum / fps_num << std::endl;
     std::cout << "fps max: " << fps_max << std::endl;
     std::cout << "fps min: " << fps_min << std::endl;

@@ -26,7 +26,10 @@ struct _ThreadInput
     _LoopListNode* node;
     std::function<bool(cv::Mat&)>* feeder;
     std::mutex mutex;
-    std::mutex* feeder_lock;
+    // std::mutex* feeder_lock;
+    std::atomic_bool this_read;
+    std::atomic_bool* next_read;
+    std::condition_variable* feeder_condition;
     std::condition_variable condition;
     std::atomic_bool pauseFlag;
     std::atomic_bool endFlag;
@@ -43,6 +46,7 @@ struct _Configure
     int GFs1;
     int GFs2;
     float th2;
+    bool returnH;
 };
 
 class BlockWarper
@@ -59,6 +63,7 @@ private:
     void init();
     void deinit();
 
+    static bool runFeed(_ThreadInput* args, cv::Mat& v);
     static void *perThread(void* data);
 
 private:
@@ -70,6 +75,7 @@ private:
     std::mutex worker_lock;
     std::mutex feeder_lock;
     std::condition_variable worker_condition;
+    std::condition_variable feeder_condition;
 };
 
 #endif // _INC_BLOCKWARPER_H
