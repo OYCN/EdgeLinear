@@ -7,6 +7,7 @@ void BlockPipline::init()
     fMaph = blockA.getOutput();
     result = blockC.getOutput();
     edges = blockB.getOutput();
+    run();
 }
 
 void BlockPipline::deinit()

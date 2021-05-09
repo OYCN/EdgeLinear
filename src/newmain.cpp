@@ -1,11 +1,19 @@
 #include "BlockWarper.h"
 #include <unistd.h>
 
-int main()
+int main(int argc, char* argv[])
 {
     double fps, fps_max = 0, fps_min = 999, fps_sum = 0;
     int fps_num = 0;
 
+    int delay = 0;
+    int level = 1;
+
+    if(argc == 3)
+    {
+        level = std::atoi(argv[1]);
+        delay = std::atoi(argv[2]);
+    }
     cv::VideoCapture capture;
     capture.open("img/Robotica_1080.wmv");
     if(!capture.isOpened())
@@ -26,7 +34,7 @@ int main()
     cfg.GFs2 = 0;
     cfg.th2 = 5;
 
-    BlockWarper warper(3, cfg);
+    BlockWarper warper(level, cfg);
 
     warper.setFeeder([&](cv::Mat& v){return capture.read(v) ? true : false;});
 
@@ -40,13 +48,7 @@ int main()
     fps = (double)cv::getTickCount();
     while(warper.waitOne(edge_set, edge_offset, edge_offset_len, flags))
     {   
-        fps = cv::getTickFrequency()/((double)cv::getTickCount() - fps);
-        if(fps > fps_max) fps_max = fps;
-        if(fps < fps_min) fps_min = fps;
-        fps_sum += fps;
-        fps_num++;
-
-        usleep(1000 * 0);
+        usleep(1000 * delay);
 
         // cv::Mat outMap = cv::Mat::ones(rows, cols, CV_8UC3);
         // for(int i = 0; i < (edge_offset_len - 1); i++)
@@ -72,7 +74,11 @@ int main()
         // {
         //     break;
         // }
-
+        fps = cv::getTickFrequency()/((double)cv::getTickCount() - fps);
+        if(fps > fps_max) fps_max = fps;
+        if(fps < fps_min) fps_min = fps;
+        fps_sum += fps;
+        fps_num++;
         fps = (double)cv::getTickCount();
     }
     warper.join();
