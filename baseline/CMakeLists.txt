@@ -7,6 +7,15 @@ add_executable(
 )
 
 add_executable(
+    EDbaseline-unit
+
+    EDProcess.cpp
+    EDmain.cpp
+)
+
+target_compile_definitions(EDbaseline-unit PRIVATE UNIT_RESULT)
+
+add_executable(
     EDDPbaseline
 
     EDProcess.cpp

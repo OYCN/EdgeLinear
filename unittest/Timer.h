@@ -48,7 +48,7 @@ typedef std::chrono::high_resolution_clock Clock;
 #define TEND(x_) x_##_t1 = Clock::now();
 #define TPRINT(x_, str) printf("%-20s \t%.6f\t sec\n", str, std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()/1e6);
 #define TPRINTMS(x_, str) printf("%-20s \t%.6f\t ms\n", str, std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()/1e3);
-#define TPRINTUS(x_, str) printf("%-20s \t%.6f\t us\n", str, std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count());
+#define TPRINTUS(x_, str) printf("%-20s \t%ld\t us\n", str, std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count());
 #else
 #define TDEF(x_)
 #define TSTART(x_)

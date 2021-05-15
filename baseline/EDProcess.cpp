@@ -117,7 +117,7 @@ void getEdgeInfor(cv::Mat blurImg, cv::Mat gMap, cv::Mat dMap)
 		uchar* dMap_str = dMap.ptr<uchar>(j);
 		for(int i = 1; i < blurImg.cols-1; i++)
 		{
-			int dx = abs(b_str[i+1+blurImg.step] + b_str[i+1] + b_str[i+1-blurImg.step] -
+			int dx = abs(b_str[i+1+blurImg.step] + UNIT_RESULTb_str[i+1] + b_str[i+1-blurImg.step] -
 				     (b_str[i-1+blurImg.step] + b_str[i-1] + b_str[i-1-blurImg.step]));
 			int dy = abs(b_str[i-1-blurImg.step] + b_str[i-blurImg.step] + b_str[i+1-blurImg.step] -
 				     (b_str[i-1+blurImg.step] + b_str[i+blurImg.step] + b_str[i+1+blurImg.step]));
@@ -182,7 +182,20 @@ cv::Mat getAnchorPoint(cv::Mat gMap, cv::Mat dMap, int K, int ANCHOR_TH)
 // connecting 
 cv::Mat smartConnecting(cv::Mat gMap, cv::Mat dMap, cv::Mat aMap, std::vector<std::vector<cv::Point>>& edge_s)
 {
-	cv::Mat eMap = cv::Mat::zeros(gMap.size(), gMap.type()); 
+	cv::Mat eMap = cv::Mat::zeros(gMap.size(), gMap.type());
+
+	#ifdef UNIT_RESULT
+	// unit result 
+	for(int i = 0; i < gMap.rows; i++)
+	for(int j = 0; j < gMap.cols; j++)
+	{
+		if(i == 0 || j == 0 || i == (gMap.rows - 1) || j == (gMap.cols - 1))
+		{
+			eMap.data[i * gMap.cols + j] = 255;
+		}
+	}
+	#endif // UNIT_RESULT
+
 	int h = gMap.rows, w = gMap.cols;
 	std::vector<cv::Point>edges;
 
@@ -224,6 +237,9 @@ static void goMove(int x, int y, cv::Mat gMap, cv::Mat eMap, cv::Mat dMap, CURR_
 {
 	int flag = 0;
 	int h = gMap.rows, w = gMap.cols, s = gMap.step;
+	#ifdef UNIT_RESULT
+	if(!(y == 0 || x == 0 || y == (gMap.rows - 1) || x == (gMap.cols - 1)))
+	#endif // UNIT_RESULT
 	eMap.data[y*s+x] = 0; // for the second scan
 
 	while(x>0 && x <w-1 && y>0 && y<h-1 && !eMap.data[y*s+x] && gMap.data[y*s+x])
