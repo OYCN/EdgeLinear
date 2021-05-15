@@ -1,2 +1,6 @@
 build
 .vs
+img
+*.png
+*.jpg
+*.jpeg
