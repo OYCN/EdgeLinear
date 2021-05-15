@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
 		//  cv::namedWindow("src", CV_WINDOW_NORMAL);
 	    // imshow("src", src);
 		// if(waitKey(1)==27) break;
+		cv::imwrite("edge_true.jpg", eMap);
 	}
 	std::cout << "fps avg: " << fps_sum / fps_num << std::endl;
     std::cout << "fps max: " << fps_max << std::endl;

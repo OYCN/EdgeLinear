@@ -3,14 +3,13 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/inc",
-                "/usr/include",
+                "${workspaceFolder}",
                 "/usr/local/cuda/include"
             ],
             "defines": [
                 "LINUX",
                 "TIMING",
-                "_DP",
+                "_LS",
                 "USE_OPENCV_GPU"
             ],
             "compilerPath": "/usr/bin/gcc",

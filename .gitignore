@@ -1,9 +1,2 @@
-out.png
-bin/*
-!bin/configure
-img
+build
 .vs
-tmp/*
-*.jpg
-*.png
-*.mp4
