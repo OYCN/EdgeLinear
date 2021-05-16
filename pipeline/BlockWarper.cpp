@@ -154,6 +154,8 @@ bool BlockWarper::syncRun(POINT* edge_set, int* edge_offset, int& edge_offset_le
         return false;
     }
 
+    feedtime_sum -= cv::getTickCount();
+
     app->run();
 
     if(configure.returnH)
@@ -169,6 +171,9 @@ bool BlockWarper::syncRun(POINT* edge_set, int* edge_offset, int& edge_offset_le
     memcpy(edge_set, edges->edge_set, sizeof(POINT) * edge_offset[edge_offset_len-1]);
     
     HANDLE_ERROR(cudaStreamSynchronize(custream));
+
+    loop_time++;
+    feedtime_sum += cv::getTickCount();
 
     return true;
 }
@@ -189,7 +194,10 @@ bool BlockWarper::asyncRun(POINT* edge_set, int* edge_offset, int& edge_offset_l
         worker_condition.wait(locker);
     }
 
-    if(context->endFlag == true) return false;
+    if(context->endFlag == true)
+    {
+        return false;
+    }
 
     now_idx = context->next_app_index;
 
@@ -206,6 +214,9 @@ bool BlockWarper::asyncRun(POINT* edge_set, int* edge_offset, int& edge_offset_l
     memcpy(edge_set, edges->edge_set, sizeof(POINT) * edge_offset[edge_offset_len-1]);
     
     HANDLE_ERROR(cudaStreamSynchronize(custream));
+
+    loop_time++;
+    feedtime_sum += cv::getTickCount() - context->feed_time;
 
     // 通知线程继续
     context->pauseFlag = false;
@@ -227,6 +238,8 @@ bool BlockWarper::runFeed(_Context* context, cv::Mat& v)
     bool ret = feeder(v);
 
     context->first_feed = true;
+    
+    context->feed_time = cv::getTickCount();
 
     feeder_lock.unlock();
 

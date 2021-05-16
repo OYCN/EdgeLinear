@@ -19,6 +19,7 @@ struct _Context
     int next_app_index;
     pthread_t tid;
     bool first_feed;
+    int64 feed_time;
 
     std::mutex mutex;
     std::condition_variable pauseCondition;
@@ -42,7 +43,8 @@ struct _Configure
 class BlockWarper
 {
 public:
-    BlockWarper(int _level, _Configure _configure) : level(_level), configure(_configure) {init();}
+    BlockWarper(int _level, _Configure _configure) 
+        : level(_level), configure(_configure), feedtime_sum(0), loop_time(0) {init();}
     ~BlockWarper(){deinit();}
     void setFeeder(std::function<bool(cv::Mat&)> _feeder);
     void start();
@@ -58,6 +60,10 @@ private:
 
     static bool runFeed(_Context* args, cv::Mat& v);
     static void *perThread(void* data);
+
+public:
+    int64 feedtime_sum;
+    int loop_time;
 
 private:
     int level;

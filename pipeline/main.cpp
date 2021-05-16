@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
     bool* flags; // = new bool[rows * cols];
     HANDLE_ERROR(cudaMallocHost(&flags, sizeof(bool)*rows*cols));
 
-    int64 tickcount = (double)cv::getTickCount();
+    int64 tickcount = cv::getTickCount();
     while(warper.waitOne(edge_set, edge_offset, edge_offset_len, flags))
     {   
         usleep(1000 * delay);
@@ -82,9 +82,9 @@ int main(int argc, char* argv[])
         }
         loop_time++;
     }
-    tickcount = ((double)cv::getTickCount() - tickcount) / loop_time;
-    double fps = cv::getTickFrequency() / tickcount;
-    double time = tickcount / cv::getTickFrequency();
+    tickcount = cv::getTickCount() - tickcount;
+    double fps = cv::getTickFrequency() * loop_time / tickcount;
+    double time = tickcount / loop_time / cv::getTickFrequency();
     warper.join();
 
     delete[] edge_set;
@@ -93,6 +93,10 @@ int main(int argc, char* argv[])
 
     std::cout << "fps avg: " << fps << std::endl;
     std::cout << "time avg: " << time << std::endl;
+    std::cout << "loop_time: " << loop_time << std::endl;
+
+    double delay_time = warper.feedtime_sum / warper.loop_time / cv::getTickFrequency();
+    std::cout << "delay avg: " << delay_time << std::endl;
     std::cout << "loop_time: " << loop_time << std::endl;
     
 }
