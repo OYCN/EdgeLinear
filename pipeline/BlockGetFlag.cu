@@ -33,7 +33,7 @@ void BlockGetFlag::enqueue(cv::Mat& sMaph, cv::cuda::Stream& cvstream)
     // GPU Block 划分
     const dim3 dimBlock(32,32);;
     // GPU Grid 划分
-    const dim3 dimGrid((cols+27)/28, (rows+27)/28);
+    const dim3 dimGrid((cols - 4 + 27) / 28, (rows - 4 + 27) / 28);
 
     cudaStream_t custream = cv::cuda::StreamAccessor::getStream(cvstream);
     HANDLE_ERROR(cudaMemcpyAsync(srcd, sMaph.data, sizeof(uchar)*rows*cols*3, cudaMemcpyHostToDevice, custream));
@@ -113,7 +113,7 @@ __global__ void kernelC(uchar *blur, uchar *fMap, int gcols, int grows, int ANCH
 	__syncthreads();
     // 以上 29.3 ms
     // 锚点提取 21.341 ms
-	if((lx>1 || gx==1) && (ly>1 || gy==1) && (lx<(lcols-2) || gx==(gcols-2)) && (ly<(lrows-2) || gy==(grows-2)) && gx<(gcols-1) && gy<(grows-1))
+	if(lx>1 && ly>1 && lx<(lcols-2) && ly<(lrows-2) && gx<(gcols-2) && gy<(grows-2))
 	{
 		// h
 		flag1 = !dir;

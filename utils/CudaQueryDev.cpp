@@ -24,7 +24,11 @@ int main()
         printf("Total amount of shared memory per block         %u bytes\n", deviceProp.sharedMemPerBlock);
         printf("Total number of registers available per block:  %d\n", deviceProp.regsPerBlock);
         printf("Warp size                                       %d\n", deviceProp.warpSize);
-        printf("Maximum number of thread per block:            %d\n", deviceProp.maxThreadsPerBlock);
+        printf("Maximum number of thread per SM:                %d\n", deviceProp.maxThreadsPerMultiProcessor);
+        printf("Maximum shard per SM:                           %d\n", deviceProp.sharedMemPerMultiprocessor);
+        printf("Maximum register per SM:                        %d\n", deviceProp.regsPerMultiprocessor);
+        printf("Maximum block per SM:                           %d\n", deviceProp.maxBlocksPerMultiProcessor);
+        printf("Maximum number of thread per block:             %d\n", deviceProp.maxThreadsPerBlock);
         printf("Maximum sizes of each dimension of a block:     %d x %d x %d\n", deviceProp.maxThreadsDim[0],
             deviceProp.maxThreadsDim[1],
             deviceProp.maxThreadsDim[2]);

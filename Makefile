@@ -13,7 +13,6 @@ CUDA_FLAG = -Xptxas="-v"
 .PHONY : all clean QueryDev
 
 all: BlockGetFlag.o \
-	 BlockConnect.o \
 	 BlockLinear.o
 
 BlockGetFlag.o: pipeline/BlockGetFlag.cu pipeline/BlockGetFlag.h

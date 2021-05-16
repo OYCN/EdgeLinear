@@ -22,8 +22,8 @@ void BlockLinear::deinit()
 
 void BlockLinear::enqueue(_EDoutput fMaph, cv::cuda::Stream& cvstream)
 {
-    const dim3 dimBlock(32,1);
-    const dim3 dimGrid((cols*rows+31) / 32, 1);
+    const dim3 dimBlock(64,1);
+    const dim3 dimGrid((cols*rows+63) / 64, 1);
 
     cudaStream_t custream = cv::cuda::StreamAccessor::getStream(cvstream);
 
