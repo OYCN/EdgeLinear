@@ -17,10 +17,12 @@ void BlockWarper::init()
     }
     if(level == 0)
     {
+        std::cout << "sync mod" <<std::endl;
         sync = true;
     }
     else
     {
+        std::cout << "async mod" <<std::endl;
         sync = false;
     }
     for(int i = 0; i < level; i++)
