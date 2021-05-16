@@ -2,7 +2,7 @@
 #define _INC_BLOCKLINEAR_H
 
 #include <opencv2/core/cuda_stream_accessor.hpp>
-#include "common.h"
+#include "../common/common.h"
 
 class BlockLinear
 {

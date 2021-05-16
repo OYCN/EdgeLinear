@@ -1,7 +1,7 @@
 #ifndef _INC_DOUGLASpEUCKER_H
 #define _INC_DOUGLASpEUCKER_H
 
-#include "common.h"
+#include "../common/common.h"
 
 class DouglasPeucker
 {

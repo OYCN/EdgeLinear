@@ -3,6 +3,7 @@ set(COMMON
     Config.cpp
     EdgeDrawing.cpp
     main.cpp
+    foo.cu
 )
 
 add_executable(

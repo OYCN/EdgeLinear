@@ -1,4 +1,4 @@
-#include "BlockLinear.h"
+#include "../pipeline/BlockLinear.h"
 
 int main()
 {

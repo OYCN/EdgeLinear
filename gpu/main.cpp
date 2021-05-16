@@ -25,20 +25,28 @@ int main(int argc, char *args[])
     int fps_num = 0;
 
     // 配置初始化
-    std::string cwd(args[0]);
+    std::string cwd;
+    if(argc < 3)
     {
-    size_t a = cwd.find_last_of('/');
-    cwd = cwd.substr(0, a+1);
+        cwd = std::string(args[0]);
+        {
+            size_t a = cwd.find_last_of('/');
+            cwd = cwd.substr(0, a+1);
+        }
+        cwd += "configure";
+        std::ifstream f(cwd);
+        if(!f.good())
+        {
+            std::ofstream of(cwd);
+            of.close();
+        }
+        // else
+        f.close();
     }
-    cwd += "configure";
-    std::ifstream f(cwd);
-    if(!f.good())
+    else
     {
-        std::ofstream of(cwd);
-        of.close();
+        cwd = std::string(args[2]);
     }
-    // else
-    f.close();
     Config cfg(cwd);
 
     bool isDisplay = cfg.Read("Display", true);

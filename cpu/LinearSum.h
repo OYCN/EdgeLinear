@@ -1,7 +1,7 @@
 #ifndef _INC_LINEARSUM_H
 #define _INC_LINEARSUM_H
 
-#include "common.h"
+#include "../common/common.h"
 
 class LinearSum
 {

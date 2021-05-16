@@ -1,7 +1,7 @@
 #ifndef _INC_LINEARDIS_H
 #define _INC_LINEARDIS_H
 
-#include "common.h"
+#include "../common/common.h"
 
 class LinearDis
 {

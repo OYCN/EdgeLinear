@@ -1,7 +1,7 @@
 #ifndef _INC_EDGEDRAWING_H
 #define _INC_EDGEDRAWING_H
 
-#include "common.h"
+#include "../common/common.h"
 
 #ifdef USE_OPENCV_GPU
 #include <opencv2/cudafilters.hpp>

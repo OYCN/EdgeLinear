@@ -1,7 +1,7 @@
 #ifndef _INC_MYPOINTSTRUCT_H
 #define _INC_MYPOINTSTRUCT_H
 
-#include "common.h"
+#include "../common/common.h"
 
 namespace mygpu
 {

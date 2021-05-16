@@ -1,7 +1,7 @@
 #ifndef _INC_BLOCKGETFLAG_H
 #define _INC_BLOCKGETFLAG_H
 
-#include "common.h"
+#include "../common/common.h"
 #include <opencv2/core/cuda_stream_accessor.hpp>
 #include <opencv2/cudafilters.hpp>
 

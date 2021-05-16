@@ -12,6 +12,14 @@ add_executable(
 )
 
 add_executable(
+    EDmain-gpu-cv
+
+    ${COMMON}
+)
+
+target_compile_definitions(EDmain-gpu-cv PRIVATE USE_OPENCV_GPU)
+
+add_executable(
     EDLSmain-gpu
 
     LinearSum.cu

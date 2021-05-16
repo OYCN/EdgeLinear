@@ -1,7 +1,7 @@
 #ifndef _INC_BLOCKCONNECT_H
 #define _INC_BLOCKCONNECT_H
 
-#include "common.h"
+#include "../common/common.h"
 
 class BlockConnect
 {

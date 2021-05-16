@@ -1,10 +1,10 @@
-#include "BlockGetFlag.h"
+#include "../pipeline/BlockGetFlag.h"
 
 int main()
 {
     TDEF(time);
 
-    cv::Mat img = cv::imread("/home/opluss/Documents/EdgeLinear/img/1.jpg");
+    cv::Mat img = cv::imread("/home/opluss/Documents/EdgeLinear/img/11.jpg");
 
     auto runner = BlockGetFlag(img.rows, img.cols, 6, 2, 5, 1, 0);
     cv::cuda::Stream cvstream;

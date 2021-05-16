@@ -14,6 +14,8 @@ link_libraries(${OpenCV_LIBS})
 include_directories(${CUDA_INCLUDE_DIRS})
 link_directories(${CUDA_LIBRARY_DIRS})
 
+include_directories(./common)
+
 add_compile_definitions(USE_OPENCV_GPU)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
