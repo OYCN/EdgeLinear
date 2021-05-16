@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
                 {
                     if(flags[j])
                     {
-                        if(old_idx > 0)
+                        if(old_idx >= 0)
                         {
                             int s0 = rand() % 256, s1 = rand() % 256, s2 = rand() % 256;
                             cv::line(outMap, edge_set[old_idx], edge_set[j], cv::Scalar(255, 255, 255), 1, 4);

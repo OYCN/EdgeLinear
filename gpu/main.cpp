@@ -115,7 +115,7 @@ int main(int argc, char *args[])
                 {
                     if(flag[j])
                     {
-                        if(old_idx > 0)
+                        if(old_idx >= 0)
                         {
                             int s0 = rand() % 256, s1 = rand() % 256, s2 = rand() % 256;
                             cv::line(outMap, EDoutput->edge_set[old_idx], EDoutput->edge_set[j], cv::Scalar(0, 0, 0), 1, 4);
