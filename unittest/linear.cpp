@@ -37,11 +37,9 @@ int main()
         {
             if(flags[j])
             {
-                std::cout << "idx: " << j << std::endl;
                 if(old_idx >= 0)
                 {
                     cv::line(outMap, edges->edge_set[old_idx], edges->edge_set[j], cv::Scalar(255, 255, 255), 1, 4);
-                    std::cout << "old_idx: " << old_idx << std::endl;
                 }
                 old_idx = j;
                 
