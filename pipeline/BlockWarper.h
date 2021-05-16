@@ -53,11 +53,15 @@ private:
     void init();
     void deinit();
 
+    bool syncRun(POINT* edge_set, int* edge_offset, int& edge_offset_len, bool* flags);
+    bool asyncRun(POINT* edge_set, int* edge_offset, int& edge_offset_len, bool* flags);
+
     static bool runFeed(_Context* args, cv::Mat& v);
     static void *perThread(void* data);
 
 private:
     int level;
+    bool sync;
     std::function<bool(cv::Mat&)> feeder;
     std::vector<_Context*> context_list;
     std::vector<BlockPipeline*> app_list;

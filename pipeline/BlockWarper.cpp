@@ -10,10 +10,18 @@ void BlockWarper::init()
     std::cout << "GFs1: " << configure.GFs1 << std::endl;
     std::cout << "GFs2: " << configure.GFs2 << std::endl;
     std::cout << "th2: " << configure.th2 << std::endl;
-    if(level <= 0)
+    if(level < 0)
     {
         std::cerr << "level set error" << std::endl;
         std::abort();
+    }
+    if(level == 0)
+    {
+        sync = true;
+    }
+    else
+    {
+        sync = false;
     }
     for(int i = 0; i < level; i++)
     {
@@ -53,6 +61,13 @@ void BlockWarper::deinit()
         delete context_list[i]->app;
         delete context_list[i];
     }
+    if(sync)
+    {
+        for(int i = 0; i < app_list.size(); i++)
+        {
+            delete app_list[i];
+        }
+    }
 }
 
 void BlockWarper::setFeeder(std::function<bool(cv::Mat&)> _feeder)
@@ -62,6 +77,21 @@ void BlockWarper::setFeeder(std::function<bool(cv::Mat&)> _feeder)
 
 void BlockWarper::start()
 {
+    if(sync)
+    {
+        BlockPipeline* ptr = new BlockPipeline(configure.rows,
+                                             configure.cols,
+                                             configure.th1,
+                                             configure.k,
+                                             configure.GFSize,
+                                             configure.GFs1,
+                                             configure.GFs2,
+                                             configure.th2,
+                                             configure.returnH);
+        app_list.push_back(ptr);
+        return;
+    }
+
     {
         int ret = pthread_create(&context_list[0]->tid, NULL, BlockWarper::perThread, context_list[0]);
         if(ret != 0)
@@ -100,6 +130,50 @@ void BlockWarper::join()
 }
 
 bool BlockWarper::waitOne(POINT* edge_set, int* edge_offset, int& edge_offset_len, bool* flags)
+{
+    if(sync)
+    {
+        return syncRun(edge_set, edge_offset, edge_offset_len, flags);
+    }
+    else 
+    {
+        return asyncRun(edge_set, edge_offset, edge_offset_len, flags);
+    }
+}
+
+bool BlockWarper::syncRun(POINT* edge_set, int* edge_offset, int& edge_offset_len, bool* flags)
+{
+    BlockPipeline* app = app_list[0];
+    cv::Mat* input = app->getInput();
+    bool* res = app->getResult();
+    _EDoutput* edges = app->getEdges();
+    cudaStream_t custream = app->getcuStream();
+
+    if(!feeder(*input))
+    {
+        return false;
+    }
+
+    app->run();
+
+    if(configure.returnH)
+    {
+        memcpy(flags, res, sizeof(bool) * configure.rows * configure.cols);
+    }
+    else
+    {
+        HANDLE_ERROR(cudaMemcpyAsync(flags, res, sizeof(bool)*edges->edge_offset[edges->edge_offset_len-1], cudaMemcpyDeviceToHost, custream));
+    }
+    edge_offset_len = edges->edge_offset_len;
+    memcpy(edge_offset, edges->edge_offset, sizeof(int) * edge_offset_len);
+    memcpy(edge_set, edges->edge_set, sizeof(POINT) * edge_offset[edge_offset_len-1]);
+    
+    HANDLE_ERROR(cudaStreamSynchronize(custream));
+
+    return true;
+}
+
+bool BlockWarper::asyncRun(POINT* edge_set, int* edge_offset, int& edge_offset_len, bool* flags)
 {
     static int now_idx = 0;
 
