@@ -16,3 +16,9 @@ add_executable(
 
     imgs2video.cpp
 )
+
+add_executable(
+    videocat
+
+    videocat.cpp
+)
