@@ -56,7 +56,7 @@ int main(int argc, char *args[])
     // 根据配置和参数调用不同数据源
     if(argc!=1)
     {
-        std::cout << "Using Img:" << args[1] << std::endl;
+        std::cout << "Using Source:" << args[1] << std::endl;
         capture.open(args[1]);
     }
 	else
@@ -70,6 +70,10 @@ int main(int argc, char *args[])
         {
             std::cout << "Using Pip:\n\t" << cfg.Read("Pip", std::string()) << std::endl;
             capture.open(cfg.Read("Pip", std::string()), cfg.Read("ApiPreference", (int)cv::CAP_GSTREAMER));
+        }
+        else
+        {
+            capture.open("/home/opluss/Documents/EdgeLinear/img/dataset.mp4");
         }
     }
 

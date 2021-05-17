@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     }
     if(argc > 3) display = true;
     cv::VideoCapture capture;
-    capture.open("/home/opluss/Documents/EdgeLinear/img/Robotica_1080.wmv");
+    capture.open("/home/opluss/Documents/EdgeLinear/img/dataset.mp4");
     if(!capture.isOpened())
 	{
 		printf("[%s][%d]could not load video data...\n",__FUNCTION__,__LINE__);

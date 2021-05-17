@@ -18,7 +18,7 @@ struct _Context
     int app_index;
     int next_app_index;
     pthread_t tid;
-    bool first_feed;
+    volatile bool first_feed;
     int64 feed_time;
 
     std::mutex mutex;

@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 
 	VideoCapture cap;
 	if(argc == 1)
-		cap.open("/home/opluss/Documents/EdgeLinear/img/11.jpg");
+		cap.open("/home/opluss/Documents/EdgeLinear/img/dataset.mp4");
 	else
 		cap.open(argv[1]);
 

@@ -63,6 +63,10 @@ int main(int argc, char *args[])
             std::cout << "Using Pip:\n\t" << cfg.Read("Pip", std::string()) << std::endl;
             capture.open(cfg.Read("Pip", std::string()), cfg.Read("ApiPreference", (int)cv::CAP_GSTREAMER));
         }
+        else
+        {
+            capture.open("/home/opluss/Documents/EdgeLinear/img/dataset.mp4");
+        }
     }
 
 	if(!capture.isOpened())
