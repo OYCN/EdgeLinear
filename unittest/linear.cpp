@@ -1,55 +1,79 @@
+#include <fstream>
+#include <random>
+#include <cmath>
+#include <string>
 #include "../common/common.h"
-#include "../pipeline/BlockGetFlag.h"
-#include "../pipeline/BlockConnect.h"
 #include "../pipeline/BlockLinear.h"
 
 bool* linear(_EDoutput input, bool* flags_h, float th);
 
 int main(int argc, char* argv[])
 {
-    cv::Mat src = cv::Mat::zeros(320, 320, CV_8UC3);
-    int r = src.cols > src.rows ? src.rows / 3 : src.cols / 3;
-    cv::circle(src, {src.cols/2, src.rows/2}, r, {255, 255, 255}, 1);
-    cv::imshow("src.jpg", src);
-    auto blockA = BlockGetFlag(src.rows, src.cols, 6, 2, 5, 1, 0);
-    auto blockB = BlockConnect(src.rows, src.cols);
+    std::ifstream fin;
+    fin.open("base.dat", std::ios::binary);
+    fin.seekg(0, fin.end);
+    size_t size = fin.tellg();
+    fin.seekg(0, fin.beg);
+    std::vector<POINT> base;
+    base.resize(size / sizeof(POINT));
+    fin.read(reinterpret_cast<char*>(base.data()), size);
+    std::cout << "base line is " << base.size() << std::endl;
 
+    _EDoutput fakeEdge;
+
+    int mod;
+    // bin 边缘数 长度基本值 均值 方差
+    if(argc != 4)
+    {
+        std::cout << argv[0] << " 边缘数 均值 方差" << std::endl;
+        exit(0);
+    }
+    size_t a = std::atoi(argv[1]);
+    size_t b = std::atoi(argv[2]);
+    size_t c = std::atoi(argv[3]);
+
+    std::default_random_engine engine; //引擎
+    std::normal_distribution<double> norm(b, c); //均值, 方差
+
+    HANDLE_ERROR(cudaMallocHost(&fakeEdge.edge_offset, (a + 1) * sizeof(int)));
+    
+    fakeEdge.edge_offset_len = a + 1;
+    int* point_num = fakeEdge.edge_offset;
+    std::vector<POINT> segs_v;
+    *point_num = 0;
+    point_num++;
+    int max = 0;
+    int min = a+1;
+    for(int i = 0; i < a; i++)
+    {
+        unsigned len = std::lround(norm(engine)); //取整-最近的整数
+        if(len < 2) len = 2;
+        if(max < len) max = len;
+        if(min > len) min = len;
+        *point_num = *(point_num - 1) + len;
+        point_num++;
+        for(size_t _ = 0, idx = 0; _ < len; _++, idx++)
+        {
+            if(idx == base.size()) idx = 0;
+            segs_v.push_back(base[idx]);
+        }
+    }
+
+    std::cout << "max: " << max << ", min: " << min << std::endl;
+
+    HANDLE_ERROR(cudaMallocHost(&fakeEdge.edge_set, segs_v.size() * sizeof(POINT)));
+    for(int i = 0; i < segs_v.size(); i++)
+    {
+        fakeEdge.edge_set[i] = segs_v[i];
+    }
+
+    std::vector<POINT>().swap(segs_v);
+
+
+    auto blockC = BlockLinear(fakeEdge.edge_offset[(fakeEdge.edge_offset_len)-1], 1, 5, false);
     cv::cuda::Stream cvstream;
     cudaStream_t custream = cv::cuda::StreamAccessor::getStream(cvstream);
-
-    uchar* fMaph = blockA.getOutput();
-    _EDoutput* edges = blockB.getOutput();
-    
-    blockA.enqueue(src, cvstream);
-    HANDLE_ERROR(cudaStreamSynchronize(custream));
-    blockB.execute(fMaph);
-
-    size_t number_seg = 1;
-    if(argc == 2) 
-    {
-        number_seg = std::atoi(argv[1]);
-    }
-
-    std::vector<POINT> one_edge;
-    std::vector<int> offset;
-    offset.push_back(0);
-    size_t one_edge_len = edges->edge_offset[1] - edges->edge_offset[0];
-    std::cout << "edge len per seg " << one_edge_len << std::endl;
-    one_edge.resize(one_edge_len * number_seg);
-    for(int i = 0; i < number_seg; i++)
-    {
-        memcpy(one_edge.data() + i * one_edge_len, edges->edge_set, one_edge_len * sizeof(POINT));
-        offset.push_back(offset[i] + one_edge_len);
-    }
-
-    auto blockC = BlockLinear(one_edge_len * number_seg, 1, 5, false);
     bool* flags_d = blockC.getOutput();
-
-    _EDoutput fakeEdge = {
-        .edge_set = one_edge.data(),
-        .edge_offset = offset.data(),
-        .edge_offset_len = number_seg + 1
-    };
 
     bool* flags_h;
     HANDLE_ERROR(cudaMallocHost(&flags_h, sizeof(bool)*(fakeEdge.edge_offset)[(fakeEdge.edge_offset_len)-1]));
@@ -77,10 +101,10 @@ int main(int argc, char* argv[])
     TEND(cpu);
     TPRINTUS(cpu, "linear cpu(ms): ");
 
-    cv::Mat outMap = cv::Mat::zeros(src.rows, src.cols, CV_8UC3);
     // std::cout << fakeEdge.edge_offset_len <<std::endl;
     for(int i = 0; i < (fakeEdge.edge_offset_len - 1); i++)
     {
+        cv::Mat outMap = cv::Mat::zeros(320, 320, CV_8UC3);
         int old_idx = -1;
         for(int j = fakeEdge.edge_offset[i]; j < fakeEdge.edge_offset[i+1]; j++)
         {
@@ -94,11 +118,10 @@ int main(int argc, char* argv[])
                 
             }
         }
+        // cv::imshow(std::string("outMap") + std::to_string(i), outMap);
+        cv::imshow(std::string("outMap"), outMap);
+        // if(cv::waitKey(1) == ' ') break;
     }
-    cv::Mat eMap = cv::Mat(src.rows, src.cols, CV_8UC1, edges->eMap);
-    cv::imshow("edge", eMap * 255);
-    cv::imshow("outMap", outMap);
-    cv::waitKey();
     return 0;
 }
 

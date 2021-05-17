@@ -22,11 +22,26 @@ target_compile_definitions(UT-ED PRIVATE LINUX TIMING)
 add_executable(
     UT-Linear
 
-    ../pipeline/BlockGetFlag.cu
-    ../pipeline/BlockConnect.cpp
     ../pipeline/BlockLinear.cu
 
     linear.cpp
 )
 
 target_compile_definitions(UT-Linear PRIVATE LINUX TIMING)
+
+add_executable(
+    UT-GenBase
+
+    ../pipeline/BlockGetFlag.cu
+    ../pipeline/BlockConnect.cpp
+    ../pipeline/BlockLinear.cu
+
+    gen_base.cpp
+)
+
+
+add_executable(
+    UT-random
+
+    random.cpp
+)
