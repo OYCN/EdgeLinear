@@ -45,6 +45,7 @@ int main(int argc, char* argv[])
     std::cout << "fps max: " << fps_max << std::endl;
     std::cout << "fps min: " << fps_min << std::endl;
     std::cout << "time avg: " << fps_num / fps_sum << std::endl;
+    std::cout << "loop time: " << fps_num << std::endl;
     
     cv::Mat eMap = cv::Mat(rows, cols, CV_8UC1, res2->eMap);
     cv::imshow("edge_map.jpg", eMap * 255);

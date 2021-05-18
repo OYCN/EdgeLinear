@@ -83,7 +83,9 @@ int main(int argc, char* argv[])
 		// if(waitKey(1)==27) break;
 	}
 	int64 end_time = cv::getTickCount();
+	std::cout << "fps avg: " << (double)cv::getTickFrequency() * fps_num / (end_time - start_time) << std::endl;
 	std::cout << "time avg: " << (end_time - start_time) / cv::getTickFrequency() / fps_num << std::endl;
+	std::cout << "loop time: " << fps_num << std::endl;
 	cv::namedWindow("eMap", CV_WINDOW_NORMAL);
 	imshow("eMap", eMap);
 	// cv::namedWindow("src", CV_WINDOW_NORMAL);

@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     *point_num = 0;
     point_num++;
     int max = 0;
-    int min = a+1;
+    int min = b * 2;
     for(int i = 0; i < a; i++)
     {
         unsigned len = std::lround(norm(engine)); //取整-最近的整数
@@ -82,18 +82,18 @@ int main(int argc, char* argv[])
     TDEF(compute);
     TDEF(mem);
     TSTART(all);
-    TSTART(compute);
+    // TSTART(compute);
     blockC.enqueue(fakeEdge, cvstream);
     HANDLE_ERROR(cudaStreamSynchronize(custream));
-    TEND(compute);
-    TSTART(mem);
+    // TEND(compute);
+    // TSTART(mem);
     HANDLE_ERROR(cudaMemcpyAsync(flags_h, flags_d, sizeof(bool)*(fakeEdge.edge_offset)[(fakeEdge.edge_offset_len)-1], cudaMemcpyDeviceToHost, custream));
     HANDLE_ERROR(cudaStreamSynchronize(custream));
-    TEND(mem);
+    // TEND(mem);
     TEND(all);
     TPRINTUS(all, "linear all(ms): ");
-    TPRINTUS(compute, "linear compute(ms): ");
-    TPRINTUS(mem, "linear mem(ms): ");
+    // TPRINTUS(compute, "linear compute(ms): ");
+    // TPRINTUS(mem, "linear mem(ms): ");
 
     TDEF(cpu);
     TSTART(cpu);
