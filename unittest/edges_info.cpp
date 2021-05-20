@@ -28,6 +28,8 @@ int main(int argc, char* argv[])
     std::vector<double> means;
     std::vector<double> stdevs;
     std::vector<int> lens;
+    std::vector<int> maxs;
+    std::vector<int> mins;
     while(cap.read(img))
     {
 
@@ -36,12 +38,17 @@ int main(int argc, char* argv[])
         runner2.execute(res1);
 
         std::vector<int> edges_len;
+        int max = 0;
+        int min = 999999;
         for(int j = 0; j < (res2->edge_offset_len - 1); j++)
         {
-            edges_len.push_back(res2->edge_offset[j + 1] - res2->edge_offset[j]);
+            int len = res2->edge_offset[j + 1] - res2->edge_offset[j];
+            edges_len.push_back(len);
+            if(len > max) max = len;
+            if(len < min) min = len;
         }
         int sum = std::accumulate(edges_len.begin(), edges_len.end(), 0);
-        double mean =  sum / edges_len.size();
+        double mean =  (double)sum / edges_len.size();
         double accum  = 0.0;
         std::for_each (edges_len.begin(), edges_len.end(), [&](const double d) {
             accum  += (d-mean)*(d-mean);
@@ -51,6 +58,8 @@ int main(int argc, char* argv[])
         means.push_back(mean);
         stdevs.push_back(stdev);
         lens.push_back(res2->edge_offset_len - 1);
+        maxs.push_back(max);
+        mins.push_back(min);
     }
 
     std::ofstream fout;
@@ -65,6 +74,12 @@ int main(int argc, char* argv[])
         fout.write(",", 1);
         std::string str3 = std::to_string(stdevs[j]);
         fout.write(str3.c_str(), str3.size());
+        fout.write(",", 1);
+        std::string str4 = std::to_string(maxs[j]);
+        fout.write(str4.c_str(), str4.size());
+        fout.write(",", 1);
+        std::string str5 = std::to_string(mins[j]);
+        fout.write(str5.c_str(), str5.size());
         fout.write("\n", 1);
     }
     fout.close();
