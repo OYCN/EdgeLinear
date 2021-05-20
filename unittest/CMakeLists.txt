@@ -45,3 +45,12 @@ add_executable(
 
     random.cpp
 )
+
+add_executable(
+    UT-info
+
+    ../pipeline/BlockGetFlag.cu
+    ../pipeline/BlockConnect.cpp
+
+    edges_info.cpp
+)
