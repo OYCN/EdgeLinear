@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
 
     std::vector<double> means;
     std::vector<double> stdevs;
+    std::vector<int> lens;
     while(cap.read(img))
     {
 
@@ -49,17 +50,21 @@ int main(int argc, char* argv[])
 
         means.push_back(mean);
         stdevs.push_back(stdev);
+        lens.push_back(res2->edge_offset_len - 1);
     }
 
     std::ofstream fout;
     fout.open("edges_info.csv");
     for(int j = 0; j < means.size(); j++)
     {
-        std::string str1 = std::to_string(means[j]);
+        std::string str1 = std::to_string(lens[j]);
         fout.write(str1.c_str(), str1.size());
         fout.write(",", 1);
-        std::string str2 = std::to_string(stdevs[j]);
+        std::string str2 = std::to_string(means[j]);
         fout.write(str2.c_str(), str2.size());
+        fout.write(",", 1);
+        std::string str3 = std::to_string(stdevs[j]);
+        fout.write(str3.c_str(), str3.size());
         fout.write("\n", 1);
     }
     fout.close();
