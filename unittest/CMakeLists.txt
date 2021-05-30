@@ -24,6 +24,8 @@ add_executable(
 
     ../pipeline/BlockLinear.cu
 
+    BlockDP.cu
+
     linear.cpp
 )
 

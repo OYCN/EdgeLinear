@@ -4,6 +4,7 @@
 #include <string>
 #include "../common/common.h"
 #include "../pipeline/BlockLinear.h"
+#include "BlockDP.h"
 
 bool* linear(_EDoutput input, bool* flags_h, float th);
 
@@ -71,6 +72,7 @@ int main(int argc, char* argv[])
 
 
     auto blockC = BlockLinear(fakeEdge.edge_offset[(fakeEdge.edge_offset_len)-1], 1, 5, false);
+    auto blockDP = BlockDP(fakeEdge.edge_offset[(fakeEdge.edge_offset_len)-1], 1, 5, false);
     cv::cuda::Stream cvstream;
     cudaStream_t custream = cv::cuda::StreamAccessor::getStream(cvstream);
     bool* flags_d = blockC.getOutput();
@@ -78,22 +80,23 @@ int main(int argc, char* argv[])
     bool* flags_h;
     HANDLE_ERROR(cudaMallocHost(&flags_h, sizeof(bool)*(fakeEdge.edge_offset)[(fakeEdge.edge_offset_len)-1]));
 
-    TDEF(all);
-    TDEF(compute);
-    TDEF(mem);
-    TSTART(all);
-    // TSTART(compute);
+    TDEF(LS);
+    TSTART(LS);
     blockC.enqueue(fakeEdge, cvstream);
     HANDLE_ERROR(cudaStreamSynchronize(custream));
-    // TEND(compute);
-    // TSTART(mem);
     HANDLE_ERROR(cudaMemcpyAsync(flags_h, flags_d, sizeof(bool)*(fakeEdge.edge_offset)[(fakeEdge.edge_offset_len)-1], cudaMemcpyDeviceToHost, custream));
     HANDLE_ERROR(cudaStreamSynchronize(custream));
-    // TEND(mem);
-    TEND(all);
-    TPRINTUS(all, "linear all(ms): ");
-    // TPRINTUS(compute, "linear compute(ms): ");
-    // TPRINTUS(mem, "linear mem(ms): ");
+    TEND(LS);
+    TPRINTUS(LS, "linear LS(ms): ");
+
+    TDEF(DP);
+    TSTART(DP);
+    blockDP.enqueue(fakeEdge, cvstream);
+    HANDLE_ERROR(cudaStreamSynchronize(custream));
+    HANDLE_ERROR(cudaMemcpyAsync(flags_h, flags_d, sizeof(bool)*(fakeEdge.edge_offset)[(fakeEdge.edge_offset_len)-1], cudaMemcpyDeviceToHost, custream));
+    HANDLE_ERROR(cudaStreamSynchronize(custream));
+    TEND(DP);
+    TPRINTUS(DP, "linear DP(ms): ");
 
     TDEF(cpu);
     TSTART(cpu);
